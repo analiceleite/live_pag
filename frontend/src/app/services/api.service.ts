@@ -44,4 +44,28 @@ export class ApiService {
       })
     );
   }
+  
+  getPecas() {
+    return this.http.get<any[]>(`${this.baseUrl}/pecas`, { headers: this.headers() }).pipe(
+      tap(data => {
+        console.log('Pecas recebidas:', data); 
+      }),
+      catchError((error) => {
+        console.error('Erro ao buscar peças:', error);
+        return of([]); 
+      })
+    );
+  }
+
+  getClientes() {
+    return this.http.get<any[]>(`${this.baseUrl}/clientes`, { headers: this.headers() }).pipe(
+      tap(data => {
+        console.log('Clientes recebidos:', data); 
+      }),
+      catchError((error) => {
+        console.error('Erro ao buscar clientes:', error);
+        return of([]); 
+      })
+    );
+  }
 }

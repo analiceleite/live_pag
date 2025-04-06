@@ -7,6 +7,8 @@ import { ClothingRegistrationComponent } from './domain/admin/register/clothing-
 import { PurchaseRegistrationComponent } from './domain/admin/register/purchase-registration/purchase-registration.component';
 
 import { PendenciesComponent } from './domain/admin/view/pendencies/pendencies.component';
+import { ClothingListComponent } from './domain/admin/view/clothing-list/clothing-list.component';
+import { ClientListComponent } from './domain/admin/view/client-list/client-list.component';
 
 export const routes: Routes = [
   { path: '', component: AuthComponent} , 
@@ -14,7 +16,10 @@ export const routes: Routes = [
   { path: 'cadastro-pecas', component: ClothingRegistrationComponent}, 
   { path: 'cadastro-clientes', component: ClientRegistrationComponent}, 
   { path: 'cadastro-compras', component: PurchaseRegistrationComponent}, 
+
   { path: 'pendencias', component: PendenciesComponent}, 
+  { path: 'lista-pecas', component: ClothingListComponent},
+  { path: 'lista-clientes', component: ClientListComponent}, 
 ];
 
 @NgModule({

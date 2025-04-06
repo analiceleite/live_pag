@@ -1,1 +1,14 @@
-<p>client-list works!</p>
+<div class="p-6 max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold mb-4">Clientes Cadastrados</h2>
+
+    <div *ngFor="let cliente of clientes" class="bg-white rounded-xl shadow p-4 mb-3">
+        <div class="flex justify-between">
+            <span class="font-medium text-lg">{{ cliente.nome }}</span>
+            <span class="text-gray-600">CPF: {{ cliente.cpf }}</span>
+        </div>
+    </div>
+
+    <div *ngIf="clientes.length === 0" class="text-gray-500 text-center mt-8">
+        Nenhum cliente cadastrado.
+    </div>
+</div>
