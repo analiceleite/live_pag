@@ -1,0 +1,40 @@
+# node_modules
+node_modules/
+
+# .env files
+.env
+.env.*  # caso você use arquivos como .env.development, .env.production etc.
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Diretórios do sistema/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Diretórios de build
+dist/
+build/
+
+# Angular specific
+.angular/
+
+# Cache
+.cache/
+tmp/
+temp/
+
+# Test coverage
+coverage/
+
+# Output of 'npm pack'
+*.tgz
+
+# Misc
+*.local
