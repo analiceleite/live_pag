@@ -116,6 +116,25 @@ app.get("/admin/pendencias", auth('admin'), async (req, res) => {
   }
 });
 
+// ADMIN: Lista todas as peças cadastradas
+app.get("/pecas", auth('admin'), async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM pecas ORDER BY id DESC");
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ erro: "Erro ao buscar peças", detalhes: err });
+  }
+});
+
+// ADMIN: Lista todos os clientes cadastrados
+app.get("/clientes", auth('admin'), async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM clientes ORDER BY id DESC");
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ erro: "Erro ao buscar clientes", detalhes: err });
+  }
+});
 
 app.listen(3000, () => {
   console.log("🚀 Server is running on port 3000");
