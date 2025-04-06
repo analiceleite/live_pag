@@ -2,16 +2,18 @@ import { Component } from '@angular/core';
 import { ApiService } from '../../../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-pendencies',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, QRCodeComponent],
   templateUrl: './pendencies.component.html',
 })
 export class PendenciesComponent {
   pendencias: any[] = [];
   clienteSelecionadoId: number | null = null;
+  qrCodeValue: string | null = null;
 
   constructor(private apiService: ApiService) {
     this.carregarPendencias();
@@ -30,7 +32,7 @@ export class PendenciesComponent {
         }
 
         this.pendencias = Object.entries(agrupado).map(([cpf, compras]: any) => ({
-          id: compras[0].cpf, 
+          id: compras[0].cpf,
           cliente: compras[0].cliente,
           cpf,
           compras
@@ -44,6 +46,7 @@ export class PendenciesComponent {
 
   selecionarCliente(clienteId: number) {
     this.clienteSelecionadoId = this.clienteSelecionadoId === clienteId ? null : clienteId;
+    this.qrCodeValue = null; // Reseta QR Code ao trocar cliente
   }
 
   totalCompra(pecas: any[]) {
@@ -59,7 +62,23 @@ export class PendenciesComponent {
       agrupado[item.compra_id].push(item);
     }
 
-    // Ordena as compras da mais recente para a mais antiga
     return Object.values(agrupado).sort((a, b) => new Date(b[0].data).getTime() - new Date(a[0].data).getTime());
   }
+
+  gerarPix(cpf: string) {
+    const cliente = this.pendencias.find(c => c.cpf === cpf);
+    if (!cliente) return;
+  
+    const total = this.totalCompra(cliente.compras); 
+  
+    this.apiService.gerarPix(total, cliente.cliente).subscribe({
+      next: (res) => {
+        this.qrCodeValue = res.payload;
+      },
+      error: (err) => {
+        console.error('Erro ao gerar Pix:', err);
+      }
+    });
+  }  
+  
 }

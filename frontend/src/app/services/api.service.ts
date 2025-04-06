@@ -8,10 +8,10 @@ export class ApiService {
   private baseUrl = 'http://localhost:3000';
   cpf: any;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private headers() {
-    const role = localStorage.getItem('role') || 'usuario'; 
+    const role = localStorage.getItem('role') || 'usuario';
     return new HttpHeaders({ 'x-role': role });
   }
 
@@ -36,23 +36,23 @@ export class ApiService {
       headers: this.headers()
     }).pipe(
       tap(data => {
-        console.log('Pendências recebidas:', data); 
+        console.log('Pendências recebidas:', data);
       }),
       catchError((error) => {
         console.error('Erro ao buscar pendências do admin:', error);
-        return of([]); 
+        return of([]);
       })
     );
   }
-  
+
   getPecas() {
     return this.http.get<any[]>(`${this.baseUrl}/pecas`, { headers: this.headers() }).pipe(
       tap(data => {
-        console.log('Pecas recebidas:', data); 
+        console.log('Pecas recebidas:', data);
       }),
       catchError((error) => {
         console.error('Erro ao buscar peças:', error);
-        return of([]); 
+        return of([]);
       })
     );
   }
@@ -60,12 +60,29 @@ export class ApiService {
   getClientes() {
     return this.http.get<any[]>(`${this.baseUrl}/clientes`, { headers: this.headers() }).pipe(
       tap(data => {
-        console.log('Clientes recebidos:', data); 
+        console.log('Clientes recebidos:', data);
       }),
       catchError((error) => {
         console.error('Erro ao buscar clientes:', error);
-        return of([]); 
+        return of([]);
       })
     );
   }
+
+  gerarPix(valor: number, nome: string) {
+    return this.http.post<{ payload: string }>(
+      `${this.baseUrl}/pix`,
+      { valor, nome },
+      { headers: this.headers() } 
+    ).pipe(
+      tap(res => {
+        console.log('Payload PIX recebido:', res);
+      }),
+      catchError(error => {
+        console.error('Erro ao gerar Pix:', error);
+        return of({ payload: '' });
+      })
+    );
+  }
+
 }
