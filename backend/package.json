@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -15,6 +15,8 @@
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "mysql2": "^3.14.0",
-    "pg": "^8.14.1"
+    "pg": "^8.14.1",
+    "pix-payload": "^1.0.4",
+    "qrcode-pix": "^5.0.0"
   }
 }

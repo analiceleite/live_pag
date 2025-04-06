@@ -1,0 +1,42 @@
+<div *ngFor="let cliente of pendencias" class="space-y-6">
+    <div class="rounded-2xl border border-gray-200 shadow-md p-6 bg-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-800">{{ cliente.cliente }}</h2>
+                <p class="text-gray-500 text-sm">{{ cliente.cpf }}</p>
+                <p class="mt-1 font-medium text-gray-700">Total:
+                    <span class="text-green-600 font-bold">R$ {{ totalCompra(cliente.compras) | number:'1.2-2' }}</span>
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <button
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm shadow transition"
+                    (click)="gerarPix(cliente.cpf)">
+                    Gerar Pix
+                </button>
+                <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm shadow transition"
+                    (click)="selecionarCliente(cliente.id)">
+                    {{ clienteSelecionadoId === cliente.id ? 'Fechar' : 'Ver Compras' }}
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="clienteSelecionadoId === cliente.id" class="mt-6 border-t pt-4">
+            <div *ngFor="let grupo of groupByCompra(cliente.compras)" class="mb-5">
+                <p class="text-sm text-gray-600 font-semibold mb-1">Compra em {{ grupo[0].data | date:'short' }}</p>
+                <ul class="space-y-1 pl-5 list-disc text-gray-700 text-sm">
+                    <li *ngFor="let peca of grupo">{{ peca.peca }} - R$ {{ peca.preco }}</li>
+                </ul>
+            </div>
+
+            <div *ngIf="qrCodeValue" class="mt-6 flex flex-col items-center">
+                <qrcode [qrdata]="qrCodeValue" [width]="200" [errorCorrectionLevel]="'M'">
+                </qrcode>
+                <p class="mt-3 text-xs text-gray-500 text-center break-all max-w-sm">
+                    {{ qrCodeValue }}
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
