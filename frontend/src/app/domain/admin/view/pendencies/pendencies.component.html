@@ -1,0 +1,31 @@
+<div class="p-6 max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6">Pendências de Pagamento</h2>
+
+    <div *ngFor="let cliente of pendencias" class="mb-4">
+        <div class="bg-white rounded-xl shadow p-4 cursor-pointer hover:bg-gray-50"
+            (click)="selecionarCliente(cliente.cpf)">
+            <div class="flex justify-between items-center">
+                <span class="font-semibold text-lg">{{ cliente.cliente }}</span>
+                <span class="text-sm text-gray-600">CPF: {{ cliente.cpf }}</span>
+            </div>
+        </div>
+
+        <div *ngIf="clienteSelecionadoId === cliente.cpf" class="mt-4 ml-4 space-y-4">
+            <div *ngFor="let compra of groupByCompra(cliente.compras)">
+                <div class="border-l-4 border-blue-600 pl-4 bg-gray-50 p-4 rounded-xl">
+                    <p class="text-gray-600 mb-2">
+                        <strong>Compra em:</strong> {{ compra[0].data | date:'shortDate' }}
+                    </p>
+                    <ul class="list-disc list-inside">
+                        <li *ngFor="let item of compra">
+                            {{ item.peca }} - R$ {{ item.preco | number:'1.2-2' }}
+                        </li>
+                    </ul>
+                    <p class="mt-2 font-semibold">
+                        Total: R$ {{ totalCompra(compra) | number:'1.2-2' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
