@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ClientApi } from '../../../../services/api/api.service';
+import { ClientApi } from '../../../../@services/api/api.service';
 
 @Component({
   selector: 'app-client-registration',

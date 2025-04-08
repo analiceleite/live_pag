@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PurchaseApi } from '../../../../services/api/api.service';
-
+import { PurchaseApi } from '../../../../@services/api/purchase.api';
 @Component({
   selector: 'app-purchase-registration',
   imports: [CommonModule, FormsModule],

@@ -3,6 +3,7 @@
 
     <div *ngFor="let cliente of clientes" class="bg-white rounded-xl shadow p-4 mb-3">
         <div class="flex justify-between">
+            <span class="font-medium text-lg">{{ cliente.id }}</span>
             <span class="font-medium text-lg">{{ cliente.nome }}</span>
             <span class="text-gray-600">CPF: {{ cliente.cpf }}</span>
         </div>

@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ClientApi } from '../../../../services/api/client.api';
+import { ClientApi } from '../../../../@services/api/client.api';
 
 @Component({
   selector: 'app-client-list',
