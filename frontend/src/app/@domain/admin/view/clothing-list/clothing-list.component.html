@@ -3,6 +3,7 @@
 
     <div *ngFor="let peca of pecas" class="bg-white rounded-xl shadow p-4 mb-3">
         <div class="flex justify-between">
+            <span class="text-lg font-medium">{{ peca.id }}</span>
             <span class="text-lg font-medium">{{ peca.nome }}</span>
             <span class="text-gray-600">R$ {{ peca.preco | number:'1.2-2' }}</span>
         </div>

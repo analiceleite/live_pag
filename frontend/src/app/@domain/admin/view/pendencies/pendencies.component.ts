@@ -1,20 +1,27 @@
 import { Component } from '@angular/core';
-import { PurchaseApi } from '../../../../services/api/purchase.api';
+import { PurchaseApi } from '../../../../@services/api/purchase.api';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QRCodeComponent } from 'angularx-qrcode';
-import { PixApi } from '../../../../services/api/pix.api';
+import { PixApi } from '../../../../@services/api/pix.api';
+import { ClientFilterPipe } from '../../../../@services/pipes/clientFilter.pipe';
 
 @Component({
   selector: 'app-pendencies',
   standalone: true,
-  imports: [CommonModule, FormsModule, QRCodeComponent],
+  imports: [CommonModule, FormsModule, QRCodeComponent, ClientFilterPipe],
   templateUrl: './pendencies.component.html',
 })
 export class PendenciesComponent {
   pendencias: any[] = [];
   clienteSelecionadoId: number | null = null;
-  qrCodeValue: string | null = null;
+  qrCodeValue: string = '';
+
+  mostrarModalPix = false;
+  clienteModal: any;
+
+  filtro: string = '';
+  abaSelecionada: 'aberto' | 'pagas' = 'aberto';
 
   constructor(private purchaseService: PurchaseApi, private pixService: PixApi) {
     this.carregarPendencias();
@@ -39,7 +46,7 @@ export class PendenciesComponent {
           compras
         }));
       },
-      error: (err : any) => {
+      error: (err: any) => {
         console.error('Erro ao carregar pendências:', err);
       },
     });
@@ -47,7 +54,7 @@ export class PendenciesComponent {
 
   selecionarCliente(clienteId: number) {
     this.clienteSelecionadoId = this.clienteSelecionadoId === clienteId ? null : clienteId;
-    this.qrCodeValue = null; // Reseta QR Code ao trocar cliente
+    this.qrCodeValue = ''; 
   }
 
   totalCompra(pecas: any[]) {
@@ -69,17 +76,51 @@ export class PendenciesComponent {
   gerarPix(cpf: string) {
     const cliente = this.pendencias.find(c => c.cpf === cpf);
     if (!cliente) return;
-  
-    const total = this.totalCompra(cliente.compras); 
-  
+
+    const total = this.totalCompra(cliente.compras);
+
     this.pixService.gerarPix(total, cliente.cliente).subscribe({
       next: (res: { payload: string }) => {
         this.qrCodeValue = res.payload;
       },
-      error: (err : any) => {
+      error: (err: any) => {
         console.error('Erro ao gerar Pix:', err);
       }
     });
-  }  
+  }
+
+  marcarComoPaga(compraId: number) {
+    this.purchaseService.markAsPaid(compraId).subscribe({
+      next: () => {
+        this.carregarPendencias();
+        this.qrCodeValue = '';
+      },
+      error: (err: any) => {
+        console.error('Erro ao marcar como paga:', err);
+      }
+    });
+  }
+
+  marcarComoNaoPaga(compraId: number) {
+    this.purchaseService.markAsUnpaid(compraId).subscribe({
+      next: () => {
+        this.carregarPendencias();
+      },
+      error: (err: any) => {
+        console.error('Erro ao desfazer:', err);
+      }
+    });
+  }
+
+  abrirModalPix(cliente: any) {
+    this.clienteModal = cliente;
+    this.gerarPix(cliente.cpf); 
+    this.mostrarModalPix = true;
+  }
+  
+  fecharModalPix() {
+    this.mostrarModalPix = false;
+    this.qrCodeValue = '';
+  }
   
 }

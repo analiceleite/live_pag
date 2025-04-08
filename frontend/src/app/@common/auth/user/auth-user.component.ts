@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthApi } from '../../../services/api/api.service';
+import { AuthApi } from '../../../@services/api/api.service';
 
 @Component({
   selector: 'app-auth',

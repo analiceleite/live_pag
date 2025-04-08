@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ClothingApi } from '../../../../services/api/api.service';
+import { ClothingApi } from '../../../../@services/api/clothing.api';
 import { CommonModule } from '@angular/common';
 
 @Component({

@@ -19,4 +19,12 @@ export class PurchaseApi {
   getPendenciasAdmin() {
     return this.http.get(`${this.baseUrl}/pendencies`, { headers: this.headers() });
   }
+
+  markAsPaid(compraId: number) {
+    return this.http.put(`${this.baseUrl}/mark-as-paid/${compraId}`, {}, { headers: this.headers() });
+  }
+
+  markAsUnpaid(compraId: number) {
+    return this.http.patch(`${this.baseUrl}/mark-as-unpaid/${compraId}`, {}, { headers: this.headers() });
+  }
 }

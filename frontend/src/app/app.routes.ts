@@ -1,15 +1,15 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AuthAdminComponent } from './common/auth/admin/auth-admin.component';
-import { AuthUserComponent } from './common/auth/user/auth-user.component';
-import { MenuComponent } from './domain/admin/menu/menu.component';
-import { ClientRegistrationComponent } from './domain/admin/register/client-registration/client-registration.component';
-import { ClothingRegistrationComponent } from './domain/admin/register/clothing-registration/clothing-registration.component';
-import { PurchaseRegistrationComponent } from './domain/admin/register/purchase-registration/purchase-registration.component';
+import { AuthAdminComponent } from './@common/auth/admin/auth-admin.component';
+import { AuthUserComponent } from './@common/auth/user/auth-user.component';
+import { MenuComponent } from './@domain/admin/menu/menu.component';
+import { ClientRegistrationComponent } from './@domain/admin/register/client-registration/client-registration.component';
+import { ClothingRegistrationComponent } from './@domain/admin/register/clothing-registration/clothing-registration.component';
+import { PurchaseRegistrationComponent } from './@domain/admin/register/purchase-registration/purchase-registration.component';
 
-import { PendenciesComponent } from './domain/admin/view/pendencies/pendencies.component';
-import { ClothingListComponent } from './domain/admin/view/clothing-list/clothing-list.component';
-import { ClientListComponent } from './domain/admin/view/client-list/client-list.component';
+import { PendenciesComponent } from './@domain/admin/view/pendencies/pendencies.component';
+import { ClothingListComponent } from './@domain/admin/view/clothing-list/clothing-list.component';
+import { ClientListComponent } from './@domain/admin/view/client-list/client-list.component';
 
 export const routes: Routes = [
   { path: '', component: AuthUserComponent}, 
