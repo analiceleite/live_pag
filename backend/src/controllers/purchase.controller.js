@@ -34,6 +34,27 @@ exports.getAllPendencies = async (req, res) => {
       }
 }
 
+exports.getPendenciesByClient = async (req, res) => {
+  const { clienteId } = req.params;
+
+  try {
+    const result = await db.query(
+      `SELECT c.id AS compra_id, c.data, c.pago, cl.cpf, cl.nome AS cliente, p.nome AS peca, p.preco
+       FROM compras c
+       JOIN clientes cl ON c.cliente_id = cl.id
+       JOIN compra_pecas cp ON c.id = cp.compra_id
+       JOIN pecas p ON p.id = cp.peca_id
+       WHERE cl.id = $1
+       ORDER BY c.data DESC`,
+      [clienteId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar pendências do cliente', details: err });
+  }
+};
+
 exports.markAsPaid = async (req, res) => {
   const { compraId } = req.params;
 
