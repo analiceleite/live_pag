@@ -1,0 +1,25 @@
+<div class="w-full max-w-md mb-4 self-start">
+    <app-back-to-menu></app-back-to-menu>
+</div>
+<!-- Filtro -->
+<div class="mb-6 mt-10 px-4 flex justify-center">
+    <input type="text" [(ngModel)]="filtro" placeholder="Buscar por nome ou CPF..."
+        class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm" />
+</div>
+
+<div class="p-6 max-w-5xl mx-auto">
+    <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Clientes Cadastrados</h2>
+
+    <div *ngFor="let cliente of clientes | clientFilter: filtro"
+        class="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 mb-4 px-6 py-4">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-2">
+            <div class="text-gray-800 font-semibold text-lg">#{{ cliente.id }}</div>
+            <div class="text-gray-700 font-medium">{{ cliente.nome }}</div>
+            <div class="text-gray-500 text-sm md:text-base">CPF: {{ cliente.cpf }}</div>
+        </div>
+    </div>
+
+    <div *ngIf="(clientes | clientFilter: filtro).length === 0" class="text-gray-500 text-center mt-12 text-lg">
+        Nenhum cliente encontrado.
+    </div>
+</div>
