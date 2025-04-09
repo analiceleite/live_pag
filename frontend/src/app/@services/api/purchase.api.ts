@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class PurchaseApi {
@@ -16,8 +17,12 @@ export class PurchaseApi {
     return this.http.post(`${this.baseUrl}/purchase`, { cliente_id, pecas }, { headers: this.headers() });
   }
 
-  getPendenciasAdmin() {
-    return this.http.get(`${this.baseUrl}/pendencies`, { headers: this.headers() });
+  getPendenciasAdmin(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/pendencies`, { headers: this.headers() });
+  }
+
+  getPendenciasCliente(clienteId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/pendencies-by-client/${clienteId}`, { headers: this.headers() });
   }
 
   markAsPaid(compraId: number) {

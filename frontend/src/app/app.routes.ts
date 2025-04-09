@@ -10,6 +10,7 @@ import { PurchaseRegistrationComponent } from './@domain/admin/register/purchase
 import { PendenciesComponent } from './@domain/admin/view/pendencies/pendencies.component';
 import { ClothingListComponent } from './@domain/admin/view/clothing-list/clothing-list.component';
 import { ClientListComponent } from './@domain/admin/view/client-list/client-list.component';
+import { PendenciesUserComponent } from './@domain/customer/view/pendencies-user/pendencies-user.component';
 
 export const routes: Routes = [
   { path: '', component: AuthUserComponent}, 
@@ -22,6 +23,9 @@ export const routes: Routes = [
   { path: 'pendencias', component: PendenciesComponent}, 
   { path: 'lista-pecas', component: ClothingListComponent},
   { path: 'lista-clientes', component: ClientListComponent}, 
+
+  { path: 'pendencias-cliente', component: PendenciesUserComponent}, 
+
 ];
 
 @NgModule({
