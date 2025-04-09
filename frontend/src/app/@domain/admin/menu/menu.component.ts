@@ -8,5 +8,8 @@ import { RouterModule } from '@angular/router';
   templateUrl: './menu.component.html',
 })
 export class MenuComponent {
-
+  logout() {
+    localStorage.removeItem('role');
+    window.location.reload();
+  }
 }

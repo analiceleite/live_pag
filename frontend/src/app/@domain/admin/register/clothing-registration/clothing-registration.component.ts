@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ClothingApi } from '../../../../@services/api/api.service';
+import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
   selector: 'app-clothing-registration',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BackToMenuComponent],
   templateUrl: './clothing-registration.component.html',
 })
 export class ClothingRegistrationComponent {

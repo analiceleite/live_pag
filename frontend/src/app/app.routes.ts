@@ -11,22 +11,26 @@ import { PendenciesComponent } from './@domain/admin/view/pendencies/pendencies.
 import { ClothingListComponent } from './@domain/admin/view/clothing-list/clothing-list.component';
 import { ClientListComponent } from './@domain/admin/view/client-list/client-list.component';
 import { PendenciesUserComponent } from './@domain/customer/view/pendencies-user/pendencies-user.component';
+import { NotFoundComponent } from './@common/components/not-found/not-found.component';
+
+import { AdminGuard } from './@services/guards/admin-guard';
 
 export const routes: Routes = [
-  { path: '', component: AuthUserComponent}, 
-  { path: 'admin', component: AuthAdminComponent}, 
-  { path: 'menu', component: MenuComponent}, 
-  { path: 'cadastro-pecas', component: ClothingRegistrationComponent}, 
-  { path: 'cadastro-clientes', component: ClientRegistrationComponent}, 
-  { path: 'cadastro-compras', component: PurchaseRegistrationComponent}, 
+  { path: '', component: AuthUserComponent },
+  { path: 'admin', component: AuthAdminComponent },
+  { path: 'menu', component: MenuComponent, canActivate: [AdminGuard] },
+  { path: 'cadastro-pecas', component: ClothingRegistrationComponent, canActivate: [AdminGuard] },
+  { path: 'cadastro-clientes', component: ClientRegistrationComponent, canActivate: [AdminGuard] },
+  { path: 'cadastro-compras', component: PurchaseRegistrationComponent, canActivate: [AdminGuard] },
+  { path: 'pendencias', component: PendenciesComponent, canActivate: [AdminGuard] },
+  { path: 'lista-pecas', component: ClothingListComponent, canActivate: [AdminGuard] },
+  { path: 'lista-clientes', component: ClientListComponent, canActivate: [AdminGuard] },
 
-  { path: 'pendencias', component: PendenciesComponent}, 
-  { path: 'lista-pecas', component: ClothingListComponent},
-  { path: 'lista-clientes', component: ClientListComponent}, 
+  { path: 'pendencias-cliente', component: PendenciesUserComponent },
 
-  { path: 'pendencias-cliente', component: PendenciesUserComponent}, 
-
+  { path: '**', component: NotFoundComponent }
 ];
+
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
