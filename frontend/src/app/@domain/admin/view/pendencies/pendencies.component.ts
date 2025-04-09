@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { PixApi } from '../../../../@services/api/pix.api';
 import { ClientFilterPipe } from '../../../../@services/pipes/clientFilter.pipe';
+import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
   selector: 'app-pendencies',
   standalone: true,
-  imports: [CommonModule, FormsModule, QRCodeComponent, ClientFilterPipe],
+  imports: [CommonModule, FormsModule, QRCodeComponent, ClientFilterPipe, BackToMenuComponent],
   templateUrl: './pendencies.component.html',
 })
 export class PendenciesComponent {

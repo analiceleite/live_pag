@@ -3,12 +3,12 @@
       <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Painel do Admin</h2>
   
       <div class="space-y-4">
-        <button [routerLink]="['/cadastro-pecas']"
-          class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition">Cadastrar Peça</button>
-  
         <button [routerLink]="['/cadastro-clientes']"
           class="w-full bg-green-600 text-white py-2 rounded-xl hover:bg-green-700 transition">Cadastrar Cliente</button>
-  
+
+        <button [routerLink]="['/cadastro-pecas']"
+          class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition">Cadastrar Peça</button>
+          
         <button [routerLink]="['/cadastro-compras']"
           class="w-full bg-purple-600 text-white py-2 rounded-xl hover:bg-purple-700 transition">Registrar Compra</button>
   
@@ -20,6 +20,9 @@
   
         <button [routerLink]="['/lista-clientes']"
           class="w-full bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700 transition">Clientes Cadastrados</button>
+
+          <button [routerLink]="['/admin']" (click)="logout()"
+          class="w-full bg-gray-600 text-white py-2 rounded-xl hover:bg-gray-700 transition">Sair</button>
       </div>
     </div>
   </div>
