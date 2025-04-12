@@ -15,7 +15,7 @@ exports.createClient = async (req, res) => {
     cpf,
     instagram,
     phone,
-    zipCode,
+    zip_code,
     address,
     reference_point
   } = req.body;
@@ -25,7 +25,7 @@ exports.createClient = async (req, res) => {
       `INSERT INTO clients (name, cpf, instagram, phone, zip_code, address, reference_point)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id`,
-      [name, cpf, instagram, phone, zipCode, address, reference_point]
+      [name, cpf, instagram, phone, zip_code, address, reference_point]
     );
 
     res.status(201).json({ id: result.rows[0].id });

@@ -2,13 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PaymentApi, PaymentMethod } from '../../../../@services/api/payment.api';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-finances',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    RouterModule
   ],
   templateUrl: './finances.component.html'
 })
