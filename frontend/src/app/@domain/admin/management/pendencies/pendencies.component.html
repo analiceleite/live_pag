@@ -1,0 +1,179 @@
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 px-4 py-8">
+    <!-- Cabeçalho e Botão Voltar -->
+    <div class="max-w-7xl mx-auto">
+        <div class="w-full mb-4">
+            <app-back-to-menu></app-back-to-menu>
+        </div>
+
+        <!-- Cabeçalho da Página -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800">Pendências</h2>
+            <p class="text-gray-600 mt-2">Gerencie as pendências de pagamento</p>
+        </div>
+
+        <!-- Barra de Pesquisa -->
+        <div class="mb-6 flex justify-center">
+            <div class="relative w-full max-w-md">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <input type="text" [(ngModel)]="filter" placeholder="Buscar por nome ou CPF..."
+                    class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition text-sm" />
+            </div>
+        </div>
+
+        <!-- Abas -->
+        <div class="flex justify-center gap-4 mb-8">
+            <button class="px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm" [ngClass]="{
+                'bg-indigo-600 text-white hover:bg-indigo-700': selected_tab === 'open',
+                'bg-gray-100 text-gray-700 hover:bg-gray-200': selected_tab !== 'open'
+            }" (click)="selected_tab = 'open'">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Pendências em Aberto
+                </div>
+            </button>
+            <button class="px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm" [ngClass]="{
+                'bg-indigo-600 text-white hover:bg-indigo-700': selected_tab === 'paid',
+                'bg-gray-100 text-gray-700 hover:bg-gray-200': selected_tab !== 'paid'
+            }" (click)="selected_tab = 'paid'">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Pendências Pagas
+                </div>
+            </button>
+        </div>
+
+        <!-- Lista de Pendências -->
+        <div class="space-y-6 max-w-5xl mx-auto">
+            <div *ngFor="let client of pending_list | purchaseStatusFilter:filter:selected_tab"
+                class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-800">{{ client.name }}</h2>
+                                <p class="text-gray-500 text-sm">{{ client.cpf }}</p>
+                            </div>
+                        </div>
+                        <p class="font-medium text-gray-700">
+                            Total:
+                            <span class="text-green-600 font-bold">
+                                R$ {{ getTotalAmount(client.purchases) | number: '1.2-2' }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="flex gap-2 flex-wrap justify-end">
+                        <!-- Toggle de Método de Pagamento -->
+                        <div class="flex items-center gap-2 mr-4">
+                            <span class="text-sm text-gray-600">Método:</span>
+                            <div class="relative inline-flex items-center">
+                                <button type="button" 
+                                    class="relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
+                                    [ngClass]="{
+                                        'bg-indigo-600 text-white': paymentMethod === 'nubank',
+                                        'bg-gray-100 text-gray-700 hover:bg-gray-200': paymentMethod !== 'nubank'
+                                    }"
+                                    (click)="paymentMethod = 'nubank'">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                    </svg>
+                                    Nubank
+                                </button>
+                                <button type="button" 
+                                    class="relative inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
+                                    [ngClass]="{
+                                        'bg-indigo-600 text-white': paymentMethod === 'picpay',
+                                        'bg-gray-100 text-gray-700 hover:bg-gray-200': paymentMethod !== 'picpay'
+                                    }"
+                                    (click)="paymentMethod = 'picpay'">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    PicPay
+                                </button>
+                            </div>
+                        </div>
+
+                        <button class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm shadow-sm transition-all duration-200"
+                            (click)="toggleSelectedClient(client.id)">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            {{ selected_client_id === client.id ? 'Fechar' : 'Ver Compras' }}
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="selected_client_id === client.id" class="mt-6 border-t pt-6 space-y-4">
+                    <div *ngFor="let group of groupByPurchase(client.purchases)" 
+                        class="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-all duration-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-sm text-gray-600 font-medium">
+                                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Compra em {{ group[0].created_at | date: 'short' }}
+                            </p>
+                            <div class="flex gap-2">
+                                <button *ngIf="!group[0].is_paid"
+                                    class="inline-flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs shadow-sm transition-all duration-200"
+                                    (click)="markAsPaid(group[0].purchase_id)">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Marcar como Pago
+                                </button>
+                                <button *ngIf="group[0].is_paid"
+                                    class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs shadow-sm transition-all duration-200"
+                                    (click)="markAsUnpaid(group[0].purchase_id)">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Desfazer Pagamento
+                                </button>
+                            </div>
+                        </div>
+                        <ul class="space-y-2 pl-5 list-disc text-gray-700 text-sm">
+                            <li *ngFor="let item of group" class="flex items-center gap-2">
+                                <span class="text-gray-900">{{ item.clothing }}</span>
+                                <span class="text-gray-500">-</span>
+                                <span class="text-green-600 font-medium">R$ {{ item.price | number:'1.2-2' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagem de Nenhum Resultado -->
+        <div *ngIf="(pending_list | purchaseStatusFilter:filter:selected_tab).length === 0" 
+            class="mt-8 text-center bg-white rounded-2xl shadow-sm p-8">
+            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Nenhuma pendência encontrada</h3>
+            <p class="mt-2 text-sm text-gray-500">Tente ajustar sua busca ou verifique as outras abas.</p>
+        </div>
+    </div>
+</div>

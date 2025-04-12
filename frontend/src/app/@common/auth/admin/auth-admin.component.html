@@ -1,26 +1,82 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-  <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm">
-    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Login - Admin</h2>
-
-    <form (submit)="login(); $event.preventDefault()">
-      <div>
-        <div class="mb-4">
-          <label class="block mb-1 text-sm text-gray-600">Usuário</label>
-          <input type="text" [(ngModel)]="username" name="username"
-            class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="mb-4">
-          <label class="block mb-1 text-sm text-gray-600">Senha</label>
-          <input type="password" [(ngModel)]="password" name="password"
-            class="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-4">
+  <div class="w-full max-w-md">
+    <!-- Logo e Título -->
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
       </div>
+      <h2 class="text-3xl font-bold text-gray-800">Acesso Administrativo</h2>
+      <p class="text-gray-600 mt-2">Entre com suas credenciais para acessar o painel</p>
+    </div>
 
-      <div *ngIf="error" class="text-red-500 text-sm mb-4">{{ error }}</div>
+    <!-- Formulário de Login -->
+    <div class="bg-white rounded-2xl shadow-sm p-8">
+      <form (submit)="login(); $event.preventDefault()" class="space-y-6">
+        <!-- Campo de Usuário -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Usuário</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+            <input type="text" [(ngModel)]="username" name="username"
+              class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="Digite seu usuário">
+          </div>
+        </div>
 
-      <button type="submit"
-        class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition">Entrar</button>
-    </form>
+        <!-- Campo de Senha -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Senha</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+            </div>
+            <input type="password" [(ngModel)]="password" name="password"
+              class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="Digite sua senha">
+          </div>
+        </div>
+
+        <!-- Mensagem de Erro -->
+        <div *ngIf="error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-red-700">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão de Login -->
+        <button type="submit"
+          class="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all group">
+          <span>Entrar</span>
+          <svg class="ml-2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Link para voltar -->
+    <div class="mt-6 text-center">
+      <a [routerLink]="['/']" class="text-sm text-gray-600 hover:text-gray-800 transition">
+        <svg class="inline-block w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Voltar para o login de usuário
+      </a>
+    </div>
   </div>
 </div>
