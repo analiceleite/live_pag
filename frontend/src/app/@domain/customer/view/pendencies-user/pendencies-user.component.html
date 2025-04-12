@@ -1,78 +1,127 @@
-<div class="p-5 space-y-6">
-    <div class="rounded-2xl border border-gray-200 shadow-md p-6 bg-white">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-semibold text-gray-800">{{ clienteLogado.cliente }}</h2>
-                <p class="text-gray-500 text-sm">{{ clienteLogado.cpf }}</p>
-                <p class="mt-1 font-medium text-gray-700">
-                    Total em Aberto:
-                    <span class="text-red-600 font-bold">
-                        R$ {{ totalCompra(clienteLogado.compras) | number: '1.2-2' }}
-                    </span>
-                </p>
-            </div>
-        
-            <!-- Botões lado a lado -->
-            <div class="flex gap-3">
-                <button
-                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm shadow transition"
-                    (click)="gerarPix()">
-                    Ver QR Code
-                </button>
-                <button
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm shadow transition"
-                    (click)="enviarComprovante()">
-                    Enviar Comprovante
-                </button>
-            </div>
-        </div>
-        
-        <div class="mt-6 border-t pt-4">
-            <div *ngFor="let grupo of groupByCompra(clienteLogado.compras)" class="mb-4">
-                <p class="text-sm text-gray-600 font-semibold mb-1">
-                    Compra em {{ grupo[0].data | date: 'short' }}
-                </p>
-                <ul class="space-y-1 pl-5 list-disc text-gray-700 text-sm">
-                    <li *ngFor="let peca of grupo">
-                        {{ peca.peca }} - R$ {{ peca.preco }}
-                    </li>
-                </ul>
-            </div>
-        </div>
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-6">
+    <div class="max-w-6xl mx-auto space-y-6">
+        <!-- Cabeçalho do Cliente -->
+        <div class="bg-white rounded-2xl shadow-sm p-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">{{ logged_client.client }}</h2>
+                            <p class="text-gray-500 text-sm">{{ logged_client.cpf }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-700 font-medium">Total em Aberto:</span>
+                        <span class="text-2xl font-bold text-red-600">
+                            R$ {{ getTotalAmount(logged_client.purchases) | number: '1.2-2' }}
+                        </span>
+                    </div>
+                </div>
 
-        <div *ngIf="qrCodeValue" class="mt-6 flex flex-col items-center">
-            <qrcode [qrdata]="qrCodeValue" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
-            <p class="mt-3 text-xs text-gray-500 text-center break-all max-w-sm">
-                {{ qrCodeValue }}
-            </p>
+                <!-- Botões de Ação -->
+                <div class="flex flex-wrap gap-3">
+                    <button (click)="generatePix()" *ngIf="active_payment_method_name === 'nubank'"
+                        class="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm shadow transition group">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                        </svg>
+                        Pagar com QR Code
+                    </button>
+                    <button (click)="payWithPicPay()" *ngIf="active_payment_method_name === 'picpay'"
+                        class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm shadow transition group">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                        Pagar com PicPay
+                    </button>
+                    <button (click)="sendProof()"
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm shadow transition group">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Enviar Comprovante
+                    </button>
+                    <button (click)="askForDeliver()" [disabled]="isDeliveryRequested"
+                        class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm shadow transition group disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                        </svg>
+                        {{ isDeliveryRequested ? 'Entrega solicitada' : 'Solicitar entrega' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Compras -->
+            <div class="mt-8 border-t pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Histórico de Compras</h3>
+                <div class="space-y-6">
+                    <div *ngFor="let group of groupByPurchase(logged_client.purchases)" class="bg-gray-50 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-sm font-medium text-gray-700">
+                                Compra em {{ group[0].created_at | date: 'short' }}
+                            </p>
+                            <span class="text-sm text-gray-500">
+                                {{ group.length }} item{{ group.length > 1 ? 's' : '' }}
+                            </span>
+                        </div>
+                        <ul class="space-y-2">
+                            <li *ngFor="let clothing of group" class="flex items-center justify-between py-2 px-3 bg-white rounded-lg">
+                                <span class="text-gray-700">{{ clothing.clothing }}</span>
+                                <span class="font-medium text-gray-900">R$ {{ clothing.price }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code -->
+            <div *ngIf="qr_code_value" class="mt-8 border-t pt-6">
+                <div class="flex flex-col items-center">
+                    <div class="bg-white p-4 rounded-xl shadow-sm">
+                        <qrcode [qrdata]="qr_code_value" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
+                    </div>
+                    <p class="mt-3 text-xs text-gray-500 text-center break-all max-w-sm">
+                        {{ qr_code_value }}
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Pix -->
-<div *ngIf="mostrarModalPix" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div *ngIf="show_pix_modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-6 relative">
-        <button (click)="fecharModalPix()"
-            class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        <button (click)="closePixModal()"
+            class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl transition">&times;</button>
 
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">QR code gerado</h2>
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold text-gray-800">QR code gerado</h2>
 
-        <p class="text-gray-700 mb-2">
-            <span class="font-medium">Cliente:</span> {{ clienteModal?.cliente }}
-        </p>
-        <p class="text-gray-700 mb-4">
-            <span class="font-medium">Total:</span>
-            <span class="text-green-600 font-bold">
-                R$ {{ totalCompra(clienteModal?.compras) | number: '1.2-2' }}
-            </span>
-        </p>
+            <div class="bg-gray-50 rounded-xl p-4">
+                <p class="text-gray-700 mb-2">
+                    <span class="font-medium">Cliente:</span> {{ pix_modal_client?.client }}
+                </p>
+                <p class="text-gray-700">
+                    <span class="font-medium">Total:</span>
+                    <span class="text-red-600 font-bold">
+                        R$ {{ getTotalAmount(pix_modal_client?.purchases) | number: '1.2-2' }}
+                    </span>
+                </p>
+            </div>
 
-        <div class="flex justify-center">
-            <qrcode [qrdata]="qrCodeValue" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
+            <div class="flex justify-center bg-white p-4 rounded-xl shadow-sm">
+                <qrcode [qrdata]="qr_code_value" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
+            </div>
+
+            <p class="text-xs text-gray-500 text-center break-all max-w-sm mx-auto">
+                {{ qr_code_value }}
+            </p>
         </div>
-
-        <p class="mt-3 text-xs text-gray-500 text-center break-all max-w-sm mx-auto">
-            {{ qrCodeValue }}
-        </p>
     </div>
 </div>

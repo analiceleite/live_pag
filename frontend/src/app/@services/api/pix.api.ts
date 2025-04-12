@@ -8,7 +8,7 @@ export class PixApi {
   constructor(private http: HttpClient) {}
 
   private headers() {
-    const role = localStorage.getItem('role') || 'usuario';
+    const role = localStorage.getItem('role') || 'user';
     return new HttpHeaders({ 'x-role': role });
   }
 

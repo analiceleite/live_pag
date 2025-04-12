@@ -4,6 +4,7 @@ import { PurchaseApi } from '../../../../@services/api/purchase.api';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QRCodeComponent } from 'angularx-qrcode';
+import { PaymentApi } from '../../../../@services/api/payment.api';
 
 @Component({
   selector: 'app-pendencies-user',
@@ -12,65 +13,74 @@ import { QRCodeComponent } from 'angularx-qrcode';
   templateUrl: './pendencies-user.component.html'
 })
 export class PendenciesUserComponent implements OnInit {
-  clienteLogado: any = null;
-  qrCodeValue: string = '';
-  mostrarQrCode = false;
+  logged_client: any = null;
+  qr_code_value: string = '';
+  show_qr_code = false;
+  isDeliveryRequested: boolean = false;
+  active_payment_method_name: string | null = null;
 
-  clienteModal: any = null; 
-  mostrarModalPix = false;  
+  pix_modal_client: any = null; 
+  show_pix_modal = false;  
 
   constructor(
     private pixService: PixApi,
-    private purchaseService: PurchaseApi
-  ) { }
+    private purchaseService: PurchaseApi,
+    private paymentService: PaymentApi
+  ) {}
 
   ngOnInit() {
-    const clienteId = Number(localStorage.getItem('clienteId'));
+    const clientId = Number(localStorage.getItem('clientId'));
 
-    if (!clienteId) {
-      console.error('Invalid clienteId');
+    if (!clientId) {
+      console.error('Invalid client_id');
       return;
     }
 
-    this.purchaseService.getPendenciasCliente(clienteId).subscribe((res: any[]) => {
-      if (res.length > 0) {
-        this.clienteLogado = {
-          cliente: res[0].cliente,
-          cpf: res[0].cpf,
-          compras: res,
-        };
-        console.log("Compras do cliente: ", this.clienteLogado, res)
-      }
+    this.paymentService.getActive().subscribe({
+      next: (method) => this.active_payment_method_name = method.name,
+      error: () => this.active_payment_method_name = null,
     });
 
-  }
+    this.purchaseService.getPendenciesByClient(clientId).subscribe((res: any[]) => {
+      if (res.length > 0) {
+        this.logged_client = {
+          client: res[0].client,
+          cpf: res[0].cpf,
+          purchases: res,
+        };
+        console.log("Client purchases: ", this.logged_client, res);
 
-  totalCompra(pecas: any[]) {
-    return pecas
-      .filter(p => !p.pago)
-      .reduce((total, p) => total + Number(p.preco), 0);
-  }
-
-  groupByCompra(compras: any[]) {
-    const agrupado: { [compraId: string]: any[] } = {};
-    for (const item of compras) {
-      if (!agrupado[item.compra_id]) {
-        agrupado[item.compra_id] = [];
+        this.isDeliveryRequested = res.some(purchase => purchase.is_delivery_asked);
       }
-      agrupado[item.compra_id].push(item);
-    }
-    return Object.values(agrupado).filter(grupo => !grupo[0].pago);
+    });
   }
 
-  gerarPix() {
-    if (!this.clienteLogado) return;
+  getTotalAmount(purchases: any[]) {
+    return purchases
+      .filter(p => !p.is_paid)
+      .reduce((total, p) => total + Number(p.price), 0);
+  }
 
-    const total = this.totalCompra(this.clienteLogado.compras);
-    this.pixService.gerarPix(total, this.clienteLogado.cliente).subscribe({
+  groupByPurchase(purchases: any[]) {
+    const grouped: { [purchase_id: string]: any[] } = {};
+    for (const item of purchases) {
+      if (!grouped[item.compra_id]) {
+        grouped[item.compra_id] = [];
+      }
+      grouped[item.compra_id].push(item);
+    }
+    return Object.values(grouped).filter(group => !group[0].is_paid);
+  }
+
+  generatePix() {
+    if (!this.logged_client) return;
+
+    const total = this.getTotalAmount(this.logged_client.purchases);
+    this.pixService.gerarPix(total, this.logged_client.client).subscribe({
       next: (res: { payload: string }) => {
-        this.qrCodeValue = res.payload;
-        this.clienteModal = this.clienteLogado;
-        this.mostrarModalPix = true; 
+        this.qr_code_value = res.payload;
+        this.pix_modal_client = this.logged_client;
+        this.show_pix_modal = true; 
       },
       error: (err: any) => {
         console.error('Erro ao gerar Pix:', err);
@@ -78,16 +88,34 @@ export class PendenciesUserComponent implements OnInit {
     });
   }
 
-  enviarComprovante() {
-    const cliente = this.clienteLogado;
-    const mensagem = `Olá! Sou ${cliente.cliente} e estou enviando o comprovante de pagamento das minhas compras em aberto.`;
-    const link = `https://wa.me/+5547984957878?text=${encodeURIComponent(mensagem)}`;
+  payWithPicPay() {
+    const picpayLink = 'https://picpay.me/crissiatml';
+    window.open(picpayLink, '_blank'); 
+  }
+
+  askForDeliver() {
+    const purchaseId = this.logged_client.purchases[0].purchase_id; 
+    this.purchaseService.requestDelivery(purchaseId).subscribe({
+      next: (res) => {
+        console.log('Entrega solicitada com sucesso:', res);
+        this.isDeliveryRequested = true;
+      },
+      error: (err) => {
+        console.error('Erro ao solicitar entrega:', err);
+      }
+    });
+  }
+
+  sendProof() {
+    const client = this.logged_client;
+    const message = `Olá! Sou ${client.client} e estou enviando o comprovante de pagamento das minhas compras em aberto.`;
+    const link = `https://wa.me/+5547984957878?text=${encodeURIComponent(message)}`;
     window.open(link, '_blank');
   }  
 
-  fecharModalPix() {
-    this.mostrarModalPix = false;
-    this.qrCodeValue = '';
-    this.clienteModal = null;
+  closePixModal() {
+    this.show_pix_modal = false;
+    this.qr_code_value = '';
+    this.pix_modal_client = null;
   }
 }

@@ -1,0 +1,78 @@
+<div class="w-full max-w-md mb-4 self-start">
+    <app-back-to-menu></app-back-to-menu>
+</div>
+
+<!-- Campo de Filtro -->
+<div class="mb-6 mt-10 px-4 flex justify-center">
+    <input type="text" [(ngModel)]="filter" placeholder="Buscar por nome ou CPF..."
+        class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-2xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm" />
+</div>
+
+<!-- Abas -->
+<div class="flex justify-center gap-4 mb-8 px-4">
+    <button class="px-5 py-2 rounded-xl text-sm font-medium transition shadow" [ngClass]="{
+        'bg-blue-600 text-white': selected_tab === 'requested',
+        'bg-gray-200 text-gray-700': selected_tab !== 'requested'
+      }" (click)="selected_tab = 'requested'">
+        Entregas Solicitadas
+    </button>
+    <button class="px-5 py-2 rounded-xl text-sm font-medium transition shadow" [ngClass]="{
+        'bg-blue-600 text-white': selected_tab === 'sent',
+        'bg-gray-200 text-gray-700': selected_tab !== 'sent'
+      }" (click)="selected_tab = 'sent'">
+        Entregas Enviadas
+    </button>
+</div>
+
+<!-- Lista de Entregas -->
+<div class="space-y-8 px-4 max-w-5xl mx-auto">
+    <div *ngFor="let delivery of filteredDeliveries()"
+         class="rounded-2xl border border-gray-200 shadow-md p-6 bg-white">
+
+        <!-- Detalhes do Cliente -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-800">Identificador do cliente: {{ delivery.client_id }}</h2>
+                <p class="text-sm text-gray-600">Nome: {{ delivery.client_name }}</p>
+                <p class="text-sm text-gray-600">CPF: {{ delivery.client_cpf }}</p>
+                <p class="text-sm text-gray-600">Total: R$ {{ delivery.total_amount | number: '1.2-2' }}</p>
+            </div>
+
+            <div class="flex gap-2 flex-wrap justify-end">
+                <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm shadow transition"
+                        (click)="toggleSelectedClient(delivery.client_id)">
+                    {{ selected_client_id === delivery.client_id ? 'Fechar' : 'Ver Compras' }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Detalhes das Compras -->
+        <div *ngIf="selected_client_id === delivery.client_id" class="mt-6 border-t pt-4 space-y-4">
+            <div class="bg-gray-50 p-4 rounded-xl border">
+                <p class="text-sm text-gray-600 font-semibold mb-2">
+                    Compra realizada em {{ delivery.created_at | date: 'short' }}
+                </p>
+
+                <div class="mt-4">
+                    <button *ngIf="!delivery.is_delivery_sent"
+                            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm shadow transition"
+                            (click)="markAsSent(delivery.purchase_id)">
+                        Marcar como Enviado
+                    </button>
+                    <button *ngIf="delivery.is_delivery_sent"
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm shadow transition"
+                            (click)="markAsNotSent(delivery.purchase_id)">
+                        Desfazer Envio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mensagem de Nenhum Resultado -->
+<ng-container *ngIf="filteredDeliveries().length === 0">
+    <div class="text-gray-500 text-center mt-12 text-lg">
+        Nenhum resultado encontrado.
+    </div>
+</ng-container>
