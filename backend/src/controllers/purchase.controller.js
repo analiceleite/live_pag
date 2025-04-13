@@ -30,12 +30,13 @@ exports.createPurchase = async (req, res) => {
 exports.getAllPendencies = async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT p.id AS purchase_id, p.created_at, p.is_paid, c.cpf, c.name AS client,
-              cl.name AS clothing, cl.price
+      `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, p.is_delivery_sent,
+              c.cpf, c.name AS client, cl.name AS clothing, cl.price, pm.name AS payment_method
        FROM purchases p
        JOIN clients c ON p.client_id = c.id
        JOIN purchase_clothings pc ON p.id = pc.purchase_id
        JOIN clothings cl ON cl.id = pc.clothing_id
+       LEFT JOIN payment_method pm ON p.payment_method_id = pm.id
        ORDER BY p.created_at DESC`
     );
     res.json(result.rows);
@@ -50,11 +51,12 @@ exports.getPendenciesByClient = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, c.cpf, c.name AS client,
-              cl.name AS clothing, cl.price
+              cl.name AS clothing, cl.price, pm.name AS payment_method
        FROM purchases p
        JOIN clients c ON p.client_id = c.id
        JOIN purchase_clothings pc ON p.id = pc.purchase_id
        JOIN clothings cl ON cl.id = pc.clothing_id
+       LEFT JOIN payment_method pm ON p.payment_method_id = pm.id
        WHERE c.id = $1
        ORDER BY p.created_at DESC`,
       [clientId]
@@ -68,31 +70,35 @@ exports.getPendenciesByClient = async (req, res) => {
 
 exports.markAsPaid = async (req, res) => {
   const { purchaseId } = req.params;
+  const { payment_method_id } = req.body;
 
   try {
     const result = await db.query(
-      "UPDATE purchases SET is_paid = TRUE WHERE id = $1 RETURNING *", 
-      [purchaseId]
+      "UPDATE purchases SET is_paid = TRUE, payment_method_id = $1 WHERE id = $2 RETURNING *",
+      [payment_method_id, purchaseId]
     );
 
-    if (result.rowCount > 0) {
-      res.status(200).json({ message: 'Compra marcada como paga.' });
-    } else {
-      res.status(400).json({ error: 'Compra não encontrada ou já paga.' });
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Compra não encontrada' });
     }
+
+    res.status(200).json({ message: 'Compra marcada como paga' });
   } catch (err) {
-    res.status(500).json({ error: 'Erro ao marcar a compra como paga', details: err });
+    console.error('Erro ao marcar como paga:', err);
+    res.status(500).json({ message: 'Erro ao marcar como paga', error: err });
   }
 };
 
 exports.markAsUnpaid = async (req, res) => {
-  const { purchaseId } = req.params;
-
   try {
-    await db.query("UPDATE purchases SET is_paid = FALSE WHERE id = $1", [purchaseId]);
-    res.status(200).json({ message: 'Purchase marked as unpaid.' });
+    const { purchaseId } = req.params;
+    await db.query(
+      'UPDATE purchases SET is_paid = false, payment_method_id = NULL WHERE id = $1',
+      [purchaseId]
+    );
+    res.json({ message: 'Compra marcada como não paga com sucesso' });
   } catch (err) {
-    res.status(500).json({ error: 'Error updating payment status.' });
+    res.status(500).json(err);
   }
 };
 

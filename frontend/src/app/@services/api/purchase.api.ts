@@ -13,6 +13,11 @@ export class PurchaseApi {
     return new HttpHeaders({ 'x-role': role });
   }
 
+  // Payment Methods
+  getPaymentMethods(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/get-payment-method`, { headers: this.headers() });
+  }
+
   // Purchase
   create(client_id: number, clothings: number[]) {
     return this.http.post(`${this.baseUrl}/purchase`, { client_id, clothings }, { headers: this.headers() });
@@ -27,12 +32,20 @@ export class PurchaseApi {
     return this.http.get<any[]>(`${this.baseUrl}/pendencies-by-client/${clientId}`, { headers: this.headers() });
   }
 
-  markAsPaid(purchaseId: number) {
-    return this.http.put(`${this.baseUrl}/mark-as-paid/${purchaseId}`, {}, { headers: this.headers() });
+  markAsPaid(purchaseId: number, paymentMethodId: number) {
+    return this.http.put(`${this.baseUrl}/mark-as-paid/${purchaseId}`, { payment_method_id: paymentMethodId }, { headers: this.headers() });
   }
 
   markAsUnpaid(purchaseId: number) {
     return this.http.patch(`${this.baseUrl}/mark-as-unpaid/${purchaseId}`, {}, { headers: this.headers() });
+  }
+
+  markAsDelivered(purchaseId: number) {
+    return this.http.put(`${this.baseUrl}/delivery/send/${purchaseId}`, {}, { headers: this.headers() });
+  }
+
+  markAsUndelivered(purchaseId: number) {
+    return this.http.put(`${this.baseUrl}/delivery/cancel-send/${purchaseId}`, {}, { headers: this.headers() });
   }
 
   // Delivery
@@ -50,5 +63,13 @@ export class PurchaseApi {
 
   markAsNotSent(purchaseId: number) {
     return this.http.put(`${this.baseUrl}/delivery/cancel-send/${purchaseId}`, {}, { headers: this.headers() });
+  }
+
+  markAsCompleted(purchaseId: number) {
+    return this.http.put(`${this.baseUrl}/purchase/complete/${purchaseId}`, {}, { headers: this.headers() });
+  }
+
+  deletePurchase(purchaseId: number) {
+    return this.http.delete(`${this.baseUrl}/purchase/${purchaseId}`, { headers: this.headers() });
   }
 }
