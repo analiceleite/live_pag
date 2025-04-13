@@ -1,14 +1,28 @@
 import { Component, OnInit } from '@angular/core';
-import { MiningApi } from '../../../../@services/api/mining.api';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
+import { MiningApi } from '../../../../@services/api/shared/mining.api';
+import { MiningFilterPipe } from '../../../../@services/pipes/mining/mining-filter.pipe';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
-import { MiningFilterPipe } from '../../../../@services/pipes/miningFilter.pipe';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-mining-list',
-  imports: [CommonModule, FormsModule, BackToMenuComponent, MiningFilterPipe],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSnackBarModule,
+    MiningFilterPipe,
+    BackToMenuComponent
+  ],
   templateUrl: './mining-list.component.html'
 })
 export class MiningListComponent implements OnInit {
@@ -17,7 +31,6 @@ export class MiningListComponent implements OnInit {
   successMessage: string = '';
   errorMessage: string = '';
 
-  // Variáveis para controle do modal
   selectedMining: any = null;
   showEditModal: boolean = false;
   showDeleteModal: boolean = false;
@@ -25,10 +38,9 @@ export class MiningListComponent implements OnInit {
   constructor(private miningApi: MiningApi, private router: Router) {}
 
   ngOnInit(): void {
-    this.getMinings(); // Ao iniciar, carrega todos os garimpos cadastrados
+    this.getMinings(); 
   }
 
-  // Método para buscar os garimpos cadastrados
   getMinings(): void {
     this.miningApi.getMining().subscribe({
       next: (data: any[]) => {
@@ -41,14 +53,13 @@ export class MiningListComponent implements OnInit {
     });
   }
 
-  // Método para excluir um garimpo
   deleteMining(id: number): void {
     this.miningApi.deleteMining(id).subscribe({
       next: () => {
         this.successMessage = 'Garimpo excluído com sucesso!';
         this.errorMessage = '';
-        this.getMinings(); // Atualiza a lista após a exclusão
-        this.showDeleteModal = false; // Fecha o modal de exclusão
+        this.getMinings(); 
+        this.showDeleteModal = false; 
       },
       error: (err: any) => {
         console.error('Erro ao excluir garimpo', err);
@@ -58,21 +69,19 @@ export class MiningListComponent implements OnInit {
     });
   }
 
-  // Método para editar um garimpo
   editMining(id: number): void {
     this.selectedMining = this.minings.find(mining => mining.id === id);
-    this.showEditModal = true; // Exibe o modal de edição
+    this.showEditModal = true; 
   }
 
-  // Método para salvar as edições de um garimpo
   saveEditedMining(): void {
     const { id, quantity, total_value, notes } = this.selectedMining;
     this.miningApi.updateMining(id, quantity, total_value, notes).subscribe({
       next: () => {
         this.successMessage = 'Garimpo atualizado com sucesso!';
         this.errorMessage = '';
-        this.getMinings(); // Atualiza a lista
-        this.showEditModal = false; // Fecha o modal de edição
+        this.getMinings(); 
+        this.showEditModal = false; 
       },
       error: (err: any) => {
         console.error('Erro ao editar garimpo', err);
@@ -82,20 +91,17 @@ export class MiningListComponent implements OnInit {
     });
   }
 
-  // Método para cancelar a edição
   cancelEdit(): void {
-    this.showEditModal = false; // Fecha o modal sem salvar
+    this.showEditModal = false; 
   }
 
-  // Método para confirmar a exclusão
   confirmDelete(): void {
     if (this.selectedMining) {
       this.deleteMining(this.selectedMining.id);
     }
   }
 
-  // Método para cancelar a exclusão
   cancelDelete(): void {
-    this.showDeleteModal = false; // Fecha o modal de exclusão
+    this.showDeleteModal = false; 
   }
 }

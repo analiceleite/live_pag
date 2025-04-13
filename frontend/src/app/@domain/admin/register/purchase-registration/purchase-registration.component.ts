@@ -1,7 +1,7 @@
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PurchaseApi } from '../../../../@services/api/purchase.api';
+import { PurchaseApi } from '../../../../@services/api/purchase/purchase.api';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
@@ -10,7 +10,7 @@ import { BackToMenuComponent } from '../../../../@common/components/back-to-menu
   imports: [CommonModule, FormsModule, BackToMenuComponent],
   templateUrl: './purchase-registration.component.html',
 })
-export class PurchaseRegistrationComponent {
+export class PurchaseRegistrationComponent implements OnInit {
   client_id: number | null = null;
   clothings_input = '';
   success_message = '';
@@ -19,18 +19,17 @@ export class PurchaseRegistrationComponent {
 
   constructor(private purchaseService: PurchaseApi) {}
 
+  ngOnInit(): void {}
+
   registerPurchase() {
-    // Reset messages
     this.success_message = '';
     this.error_message = '';
 
-    // Validate client ID
     if (!this.client_id || this.client_id <= 0) {
       this.error_message = 'Por favor, informe um ID de cliente válido';
       return;
     }
 
-    // Validate clothing IDs
     if (!this.clothings_input.trim()) {
       this.error_message = 'Por favor, informe os IDs das peças';
       return;
@@ -48,12 +47,12 @@ export class PurchaseRegistrationComponent {
 
     this.isLoading = true;
 
-    this.purchaseService.create(this.client_id, clothings).subscribe({
+    this.purchaseService.createPurchase(this.client_id, clothings).subscribe({
       next: () => {
         this.success_message = 'Compra registrada com sucesso!';
         this.resetForm();
       },
-      error: (error) => {
+      error: (error: any) => {
         this.error_message = this.getErrorMessage(error);
       },
       complete: () => {

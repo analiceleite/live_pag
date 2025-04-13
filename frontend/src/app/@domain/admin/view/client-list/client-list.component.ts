@@ -1,16 +1,30 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ClientApi } from '../../../../@services/api/client.api';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
-import { ClientTextFilterPipe } from '../../../../@services/pipes/clientTextFilter.pipe';
+import { ClientApi } from '../../../../@services/api/client/client.api';
+import { ClientTextPipe } from '../../../../@services/pipes/client/client-text.pipe';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
   selector: 'app-client-list',
-  imports: [CommonModule, FormsModule, ClientTextFilterPipe, BackToMenuComponent],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSnackBarModule,
+    ClientTextPipe,
+    BackToMenuComponent
+  ],
   templateUrl: './client-list.component.html'
 })
-export class ClientListComponent {
+export class ClientListComponent implements OnInit {
   clients: any[] = [];  
   filter: string = '';  
   showDeleteModal: boolean = false;  

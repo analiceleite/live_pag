@@ -13,7 +13,6 @@ import { PurchaseRegistrationComponent } from './@domain/admin/register/purchase
 import { MiningRegisterComponent } from './@domain/admin/register/mining-registration/mining-registration.component';
 
 import { PendenciesComponent } from './@domain/admin/management/pendencies/pendencies.component';
-import { DeliveriesComponent } from './@domain/admin/management/deliveries/deliveries.component';
 
 import { ClothingListComponent } from './@domain/admin/view/clothing-list/clothing-list.component';
 import { ClientListComponent } from './@domain/admin/view/client-list/client-list.component';
@@ -45,7 +44,6 @@ export const routes: Routes = [
 
   // 📦 Management routes
   { path: 'pendencias', component: PendenciesComponent, canActivate: [AdminGuard] }, // Manage payment pendencies
-  { path: 'entregas', component: DeliveriesComponent, canActivate: [AdminGuard] }, // Manage deliveries
   { path: 'financeiro', component: FinancesComponent, canActivate: [AdminGuard] }, // Manage finances
 
   // 📄 Listing routes

@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'clientTextFilter',
   standalone: true
 })
-export class ClientTextFilterPipe implements PipeTransform {
+export class ClientTextPipe implements PipeTransform {
   transform(clients: any[], term: string): any[] {
     if (!clients) return [];
 

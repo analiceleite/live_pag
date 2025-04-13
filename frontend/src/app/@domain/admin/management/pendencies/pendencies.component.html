@@ -1,11 +1,11 @@
 <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 px-4 py-8">
-    <!-- Cabeçalho e Botão Voltar -->
+    <!-- Header and Back Button -->
     <div class="max-w-7xl mx-auto">
         <div class="w-full mb-4">
             <app-back-to-menu></app-back-to-menu>
         </div>
 
-        <!-- Cabeçalho da Página -->
+        <!-- Page Header -->
         <div class="text-center mb-8">
             <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16,7 +16,7 @@
             <p class="text-gray-600 mt-2">Gerencie as pendências de pagamento</p>
         </div>
 
-        <!-- Barra de Pesquisa -->
+        <!-- Search Bar -->
         <div class="mb-6 flex justify-center">
             <div class="relative w-full max-w-md">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <!-- Abas -->
+        <!-- Tabs -->
         <div class="flex justify-center gap-4 mb-8 flex-wrap">
             <button class="px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm" [ngClass]="{
                 'bg-indigo-600 text-white hover:bg-indigo-700': selected_tab === 'open',
@@ -77,9 +77,9 @@
             </button>
         </div>
 
-        <!-- Lista de Pendências -->
+        <!-- Clients List -->
         <div class="space-y-6 max-w-7xl mx-auto">
-            <div *ngFor="let client of (clients | purchaseStatusFilter:filter:selected_tab)"
+            <div *ngFor="let client of getFilteredClients()"
                 class="rounded-2xl bg-white shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-200">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="space-y-2">
@@ -97,13 +97,13 @@
                         <p class="font-medium text-gray-700">
                             Total:
                             <span class="text-green-600 font-bold">
-                                R$ {{ getTotalAmount(client.purchases) | number: '1.2-2' }}
+                                R$ {{ getTotalAmount(client) | number: '1.2-2' }}
                             </span>
                         </p>
                     </div>
 
                     <div class="flex gap-2 flex-wrap justify-end">
-                        <!-- Toggle de Método de Pagamento -->
+                        <!-- Payment Method Toggle -->
                         <div class="flex items-center gap-2 mr-4">
                             <span class="text-sm text-gray-600">Método:</span>
                             <div class="relative inline-flex items-center">
@@ -145,8 +145,9 @@
                     </div>
                 </div>
 
+                <!-- Purchases List -->
                 <div *ngIf="selected_client_id === client.cpf" class="mt-6 border-t pt-6 space-y-4">
-                    <div *ngFor="let group of groupByPurchase(client.purchases)" 
+                    <div *ngFor="let group of groupByPurchase(client)" 
                         class="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-all duration-200">
                         <div class="flex items-center justify-between mb-3">
                             <p class="text-sm text-gray-600 font-medium">
@@ -168,7 +169,7 @@
                                 </span>
                             </p>
                             <div class="flex gap-2">
-                                <!-- Botões para compras em aberto -->
+                                <!-- Buttons for open purchases -->
                                 <button *ngIf="selected_tab === 'open' && !group[0].is_paid"
                                     class="inline-flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs shadow-sm transition-all duration-200"
                                     (click)="markAsPaid(group[0].purchase_id)">
@@ -178,7 +179,7 @@
                                     Marcar como Pago
                                 </button>
 
-                                <!-- Botões para sacolinhas a entregar -->
+                                <!-- Buttons for purchases to deliver -->
                                 <button *ngIf="selected_tab === 'sent' && group[0].is_paid && !group[0].is_delivery_sent"
                                     class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs shadow-sm transition-all duration-200"
                                     (click)="markAsSent(group[0].purchase_id)">
@@ -188,7 +189,7 @@
                                     Marcar como Entregue
                                 </button>
 
-                                <!-- Botões para finalizadas -->
+                                <!-- Buttons for completed purchases -->
                                 <button *ngIf="selected_tab === 'completed' && group[0].is_paid && group[0].is_delivery_sent"
                                     class="inline-flex items-center px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs shadow-sm transition-all duration-200"
                                     (click)="returnToOpen(group[0].purchase_id)">
@@ -198,7 +199,7 @@
                                     Voltar para Aberto
                                 </button>
 
-                                <!-- Botão de excluir (visível em todas as abas exceto excluídas) -->
+                                <!-- Delete button (visible in all tabs except deleted) -->
                                 <button *ngIf="selected_tab !== 'deleted' && !group[0].is_deleted"
                                     class="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs shadow-sm transition-all duration-200"
                                     (click)="deletePurchase(group[0].purchase_id)">
@@ -219,18 +220,18 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Mensagem de Nenhum Resultado -->
-        <div *ngIf="(clients | purchaseStatusFilter:filter:selected_tab).length === 0" 
-            class="mt-8 text-center bg-white rounded-2xl shadow-sm p-8">
-            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
+            <!-- Empty State -->
+            <div *ngIf="getFilteredClients().length === 0" 
+                class="mt-8 text-center bg-white rounded-2xl shadow-sm p-8">
+                <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900">Nenhuma pendência encontrada</h3>
+                <p class="mt-2 text-sm text-gray-500">Tente ajustar sua busca ou verifique as outras abas.</p>
             </div>
-            <h3 class="text-lg font-medium text-gray-900">Nenhuma pendência encontrada</h3>
-            <p class="mt-2 text-sm text-gray-500">Tente ajustar sua busca ou verifique as outras abas.</p>
         </div>
     </div>
 </div>

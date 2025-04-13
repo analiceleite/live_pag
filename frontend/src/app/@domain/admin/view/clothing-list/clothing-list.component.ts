@@ -1,16 +1,30 @@
-import { Component } from '@angular/core';
-import { ClothingApi } from '../../../../@services/api/api.service';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ClothingFilterPipe } from '../../../../@services/pipes/clothingFilter.pipe';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
+import { ClothingApi } from '../../../../@services/api/shared/clothing.api';
+import { ClothingFilterPipe } from '../../../../@services/pipes/clothing/clothing-filter.pipe';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
-  imports: [FormsModule, CommonModule, ClothingFilterPipe, BackToMenuComponent],
   selector: 'app-clothing-list',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSnackBarModule,
+    ClothingFilterPipe,
+    BackToMenuComponent
+  ],
   templateUrl: './clothing-list.component.html',
 })
-export class ClothingListComponent {
+export class ClothingListComponent implements OnInit {
   clothings: any[] = [];
   filter: string = '';
   showDeleteModal: boolean = false;
