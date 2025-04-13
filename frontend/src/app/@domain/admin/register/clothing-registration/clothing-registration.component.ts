@@ -1,7 +1,7 @@
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ClothingApi } from '../../../../@services/api/api.service';
+import { ClothingApi } from '../../../../@services/api/shared/clothing.api';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
@@ -10,7 +10,7 @@ import { BackToMenuComponent } from '../../../../@common/components/back-to-menu
   imports: [CommonModule, FormsModule, BackToMenuComponent],
   templateUrl: './clothing-registration.component.html',
 })
-export class ClothingRegistrationComponent {
+export class ClothingRegistrationComponent implements OnInit {
   piece_name = '';
   price!: number;
   queue_name = '';
@@ -21,6 +21,8 @@ export class ClothingRegistrationComponent {
   errorMessage = '';
 
   constructor(private clothingService: ClothingApi) {}
+
+  ngOnInit(): void {}
 
   registerPurchase() {
     if (!this.piece_name || !this.price || !this.purchase_channel || !this.purchase_type) {

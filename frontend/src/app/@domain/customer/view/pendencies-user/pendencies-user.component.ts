@@ -1,15 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { PixApi } from '../../../../@services/api/pix.api';
-import { PurchaseApi } from '../../../../@services/api/purchase.api';
 import { CommonModule } from '@angular/common';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
+import { PixApi } from '../../../../@services/api/shared/pix.api';
+import { PurchaseApi } from '../../../../@services/api/purchase/purchase.api';
+import { PaymentApi } from '../../../../@services/api/shared/payment.api';
 import { QRCodeComponent } from 'angularx-qrcode';
-import { PaymentApi } from '../../../../@services/api/payment.api';
 
 @Component({
   selector: 'app-pendencies-user',
   standalone: true,
-  imports: [CommonModule, FormsModule, QRCodeComponent],
+  imports: [CommonModule, FormsModule, QRCodeComponent, MatTableModule, MatButtonModule, MatIconModule, MatSnackBarModule],
   templateUrl: './pendencies-user.component.html'
 })
 export class PendenciesUserComponent implements OnInit {

@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
-import { MiningApi } from '../../../../@services/api/mining.api';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MiningApi } from '../../../../@services/api/shared/mining.api';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
@@ -9,7 +9,7 @@ import { BackToMenuComponent } from '../../../../@common/components/back-to-menu
   selector: 'app-mining-registration',
   templateUrl: './mining-registration.component.html',
 })
-export class MiningRegisterComponent {
+export class MiningRegisterComponent implements OnInit {
   quantity: number = 0;
   total_value: number = 0;
   notes: string = '';
@@ -18,6 +18,8 @@ export class MiningRegisterComponent {
   error_message: string = '';
 
   constructor(private miningService: MiningApi) {}
+
+  ngOnInit() {}
 
   registerMining() {
     this.miningService.createMining(this.quantity, this.total_value, this.notes).subscribe({

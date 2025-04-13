@@ -1,7 +1,11 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
-import { PaymentApi, PaymentMethod } from '../../../../@services/api/payment.api';
+import { PaymentApi, PaymentMethod } from '../../../../@services/api/shared/payment.api';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -10,7 +14,11 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSnackBarModule,
   ],
   templateUrl: './finances.component.html'
 })

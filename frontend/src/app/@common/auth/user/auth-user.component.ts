@@ -1,9 +1,10 @@
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AuthApi } from '../../../@services/api/auth/auth.api';
 import { Router, RouterModule } from '@angular/router';
-import { AuthApi } from '../../../@services/api/api.service';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
+
 @Component({
   selector: 'app-auth',
   standalone: true,
