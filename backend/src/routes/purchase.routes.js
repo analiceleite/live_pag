@@ -11,6 +11,8 @@ router.get('/pendencies', auth('admin'), controller.getAllPendencies);
 router.get('/pendencies-by-client/:clientId', auth('user'), controller.getPendenciesByClient);
 router.put('/mark-as-paid/:purchaseId', auth('admin'), controller.markAsPaid);
 router.patch('/mark-as-unpaid/:purchaseId', auth('admin'), controller.markAsUnpaid);
+router.put('/mark-as-deleted/:purchaseId', auth('admin'), controller.markAsDeleted);
+router.patch('/mark-as-undeleted/:purchaseId', auth('admin'), controller.markAsUndeleted);
 
 // Delivery
 router.put('/delivery/request/:purchaseId', auth('user'), controller.markAsDeliveryRequested);

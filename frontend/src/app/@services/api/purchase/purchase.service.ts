@@ -13,7 +13,7 @@ export class PurchaseService {
         private purchaseApi: PurchaseApi,
         private paymentApi: PaymentApi,
         private snackBar: MatSnackBar
-    ) {}
+    ) { }
 
     loadPendencies(): Observable<Client[]> {
         return this.purchaseApi.getAllPendencies().pipe(
@@ -33,7 +33,7 @@ export class PurchaseService {
     markAsPaid(purchaseId: number, paymentMethodId: number): Observable<void> {
         return this.purchaseApi.markAsPaid(purchaseId, paymentMethodId).pipe(
             map(() => {
-                this.showSuccess('Pagamento registrado com sucesso!');
+                this.showMessage('Pagamento registrado com sucesso!');
             })
         );
     }
@@ -41,7 +41,7 @@ export class PurchaseService {
     markAsUnpaid(purchaseId: number): Observable<void> {
         return this.purchaseApi.markAsUnpaid(purchaseId).pipe(
             map(() => {
-                this.showSuccess('Pagamento desfeito com sucesso!');
+                this.showMessage('Pagamento desfeito com sucesso!');
             })
         );
     }
@@ -49,7 +49,7 @@ export class PurchaseService {
     markAsSent(purchaseId: number): Observable<void> {
         return this.purchaseApi.markAsSent(purchaseId).pipe(
             map(() => {
-                this.showSuccess('Entrega registrada com sucesso!');
+                this.showMessage('Entrega registrada com sucesso!');
             })
         );
     }
@@ -57,7 +57,23 @@ export class PurchaseService {
     markAsNotSent(purchaseId: number): Observable<void> {
         return this.purchaseApi.markAsNotSent(purchaseId).pipe(
             map(() => {
-                this.showSuccess('Entrega desfeita com sucesso!');
+                this.showMessage('Entrega desfeita com sucesso!');
+            })
+        );
+    }
+
+    masAsDeleted(purchaseId: number): Observable<void> {
+        return this.purchaseApi.markAsDeleted(purchaseId).pipe(
+            map(() => {
+                this.showMessage('Compra deletada com sucesso!');
+            })
+        );
+    }
+
+    markAsUndeleted(purchaseId: number): Observable<void> {
+        return this.purchaseApi.markAsUndeleted(purchaseId).pipe(
+            map(() => {
+                this.showMessage('Desfeita a deleção da compra  com sucesso!');
             })
         );
     }
@@ -66,7 +82,7 @@ export class PurchaseService {
         return this.purchaseApi.markAsNotSent(purchaseId).pipe(
             switchMap(() => this.purchaseApi.markAsUnpaid(purchaseId)),
             tap(() => {
-                this.showSuccess('Compra retornada para aberta com sucesso!');
+                this.showMessage('Compra retornada para aberta com sucesso!');
             }),
             map(() => undefined)
         );
@@ -83,7 +99,7 @@ export class PurchaseService {
     createPurchase(clientId: number, clothings: any[]): Observable<void> {
         return this.purchaseApi.createPurchase(clientId, clothings).pipe(
             map(() => {
-                this.showSuccess('Compra criada com sucesso!');
+                this.showMessage('Compra criada com sucesso!');
             })
         );
     }
@@ -98,7 +114,7 @@ export class PurchaseService {
         }, []);
     }
 
-    private showSuccess(message: string): void {
+    private showMessage(message: string): void {
         this.snackBar.open(message, 'Fechar', {
             duration: 3000,
             horizontalPosition: 'right',
