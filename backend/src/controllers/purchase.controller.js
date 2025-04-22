@@ -59,39 +59,45 @@ exports.createPurchase = async (req, res) => {
   const { client_id, clothings } = req.body;
 
   try {
-    // Verificar se já existe uma pendência (sacolinha) para o cliente
-    const existingPurchase = await db.query(
-      "SELECT id FROM purchases WHERE client_id = $1 AND is_paid = FALSE AND is_delivery_sent = FALSE",
-      [client_id]
-    );
+    // Verificar se a lista de peças está vazia
+    if (!clothings || clothings.length === 0) {
+      return res.status(400).json({ error: 'A lista de peças não pode estar vazia.' });
+    }
 
-    let purchaseId;
+    const purchaseIds = [];
 
-    if (existingPurchase.rows.length > 0) {
-      purchaseId = existingPurchase.rows[0].id;
-    } else {
-      // Criar uma nova sacolinha se não existir
+    for (const clothing_id of clothings) {
+      // Verificar se a peça já está associada a outra compra
+      const clothingCheck = await db.query(
+        "SELECT * FROM purchase_clothings WHERE clothing_id = $1",
+        [clothing_id]
+      );
+
+      if (clothingCheck.rowCount > 0) {
+        return res.status(400).json({ error: `A peça com ID ${clothing_id} já está associada a outra compra.` });
+      }
+
+      // Criar uma nova compra
       const result = await db.query(
         "INSERT INTO purchases (client_id) VALUES ($1) RETURNING id",
         [client_id]
       );
-      purchaseId = result.rows[0].id;
+
+      const purchaseId = result.rows[0].id;
+
+      // Adicionar a peça à compra
+      await db.query(
+        "INSERT INTO purchase_clothings (purchase_id, clothing_id) VALUES ($1, $2)",
+        [purchaseId, clothing_id]
+      );
+
+      purchaseIds.push(purchaseId);
     }
 
-    // Adicionar as peças à sacolinha
-    const insertPurchaseClothings = clothings.map(c =>
-      db.query(
-        "INSERT INTO purchase_clothings (purchase_id, clothing_id) VALUES ($1, $2)",
-        [purchaseId, c]
-      )
-    );
-
-    await Promise.all(insertPurchaseClothings);
-
-    res.status(201).json({ purchase_id: purchaseId });
+    res.status(201).json({ purchase_ids: purchaseIds });
   } catch (err) {
-    console.error('Erro ao criar ou atualizar a sacolinha:', err);
-    res.status(500).json({ error: 'Erro ao registrar a compra', details: err });
+    console.error('Erro ao criar compras:', err);
+    res.status(500).json({ error: 'Erro ao registrar as compras', details: err });
   }
 };
 

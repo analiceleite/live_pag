@@ -4,15 +4,19 @@ import { PurchaseApi } from './purchase.api';
 import { PaymentApi } from '../shared/payment.api';
 import { Purchase, Client, PaymentMethod } from '../../models/purchase.interface';
 import { Observable, map, switchMap, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PurchaseService {
+    private baseUrl = '/api/purchases';
+
     constructor(
         private purchaseApi: PurchaseApi,
         private paymentApi: PaymentApi,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private http: HttpClient
     ) { }
 
     loadPendencies(): Observable<Client[]> {
@@ -104,6 +108,13 @@ export class PurchaseService {
         );
     }
 
+    registerPurchase(clientId: number, clothingIds: string[]): Observable<void> {
+        return this.http.post<void>(`${this.baseUrl}/register`, {
+            client_id: clientId,
+            clothing_ids: clothingIds
+        });
+    }
+
     private groupPurchasesByClient(purchases: Purchase[]): Purchase[] {
         return purchases.reduce((acc: Purchase[], purchase: Purchase) => {
             const existingPurchase = acc.find(p => p.purchase_id === purchase.purchase_id);
@@ -121,4 +132,4 @@ export class PurchaseService {
             verticalPosition: 'top'
         });
     }
-} 
+}
