@@ -164,17 +164,32 @@
                         <span>Salvar Cadastro</span>
                     </button>
 
-                    <div *ngIf="message" class="bg-green-50 border-l-4 border-green-500 p-4 rounded-xl">
+                    <!-- Mensagem de sucesso -->
+                    <div *ngIf="success_message" class="bg-green-50 border-l-4 border-green-500 p-4 rounded-xl">
                         <div class="flex">
                             <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
+                                <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm text-green-700">{{ message }}</p>
+                                <p class="text-sm text-green-700">{{ success_message }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensagem de erro -->
+                    <div *ngIf="error_message" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m-6 4h6a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-red-700">{{ error_message }}</p>
                             </div>
                         </div>
                     </div>

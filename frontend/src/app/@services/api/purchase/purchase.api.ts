@@ -57,4 +57,12 @@ export class PurchaseApi {
       { headers: this.getHeaders() }
     );
   }
+
+  markAsDeleted(purchaseId: number): Observable<any> {
+    return this.http.put(ApiConfig.PURCHASE.MARK_AS_DELETED(purchaseId), {}, { headers: this.getHeaders() });
+  }
+
+  markAsUndeleted(purchaseId: number): Observable<any> {
+    return this.http.patch(ApiConfig.PURCHASE.MARK_AS_UNDELETED(purchaseId), {}, { headers: this.getHeaders() });
+  }
 }

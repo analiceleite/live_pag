@@ -1,47 +1,153 @@
 const db = require('../database');
 
-exports.createPurchase = async (req, res) => {
-  const { client_id, clothings } = req.body;
-
-  try {
-    const result = await db.query(
-      "INSERT INTO purchases (client_id) VALUES ($1) RETURNING id",
-      [client_id]
-    );
-
-    const purchaseId = result.rows[0].id;
-
-    const insertPurchaseClothings = clothings.map(c =>
-      db.query(
-        "INSERT INTO purchase_clothings (purchase_id, clothing_id) VALUES ($1, $2)",
-        [purchaseId, c]
-      )
-    );
-
-    await Promise.all(insertPurchaseClothings);
-
-    res.status(201).json({ purchase_id: purchaseId });
-  } catch (err) {
-    res.status(500).json(err);
-  }
-};
-
-// Payment
 exports.getAllPendencies = async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, p.is_delivery_sent,
+      `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, p.is_delivery_sent, p.is_deleted,
               c.cpf, c.name AS client, cl.name AS clothing, cl.price, pm.name AS payment_method
        FROM purchases p
        JOIN clients c ON p.client_id = c.id
        JOIN purchase_clothings pc ON p.id = pc.purchase_id
        JOIN clothings cl ON cl.id = pc.clothing_id
        LEFT JOIN payment_method pm ON p.payment_method_id = pm.id
-       ORDER BY p.created_at DESC`
+       ORDER BY c.name, p.created_at DESC`
     );
-    res.json(result.rows);
+
+    // Agrupar pendências por cliente
+    const groupedPendencies = result.rows.reduce((acc, row) => {
+      const clientKey = row.cpf; 
+
+      if (!acc[clientKey]) {
+        acc[clientKey] = {
+          client: row.client,
+          cpf: row.cpf,
+          total_amount: 0,
+          purchases: []
+        };
+      }
+
+      // Adicionar a compra ao cliente
+      acc[clientKey].purchases.push({
+        purchase_id: row.purchase_id,
+        created_at: row.created_at,
+        is_paid: row.is_paid,
+        is_delivery_asked: row.is_delivery_asked,
+        is_delivery_sent: row.is_delivery_sent,
+        is_deleted: row.is_deleted,
+        clothing: row.clothing,
+        price: parseFloat(row.price),
+        payment_method: row.payment_method
+      });
+
+      // Atualizar o total do cliente
+      acc[clientKey].total_amount += parseFloat(row.price);
+
+      return acc;
+    }, {});
+
+    // Converter o objeto agrupado em um array
+    const response = Object.values(groupedPendencies);
+
+    res.json(response);
   } catch (err) {
-    res.status(500).json(err);
+    console.error('Erro ao buscar pendências:', err);
+    res.status(500).json({ error: 'Erro ao buscar pendências', details: err });
+  }
+};
+
+exports.createPurchase = async (req, res) => {
+  const { client_id, clothings } = req.body;
+
+  try {
+    // Verificar se a lista de peças está vazia
+    if (!clothings || clothings.length === 0) {
+      return res.status(400).json({ error: 'A lista de peças não pode estar vazia.' });
+    }
+
+    const purchaseIds = [];
+
+    for (const clothing_id of clothings) {
+      // Verificar se a peça já está associada a outra compra
+      const clothingCheck = await db.query(
+        "SELECT * FROM purchase_clothings WHERE clothing_id = $1",
+        [clothing_id]
+      );
+
+      if (clothingCheck.rowCount > 0) {
+        return res.status(400).json({ error: `A peça com ID ${clothing_id} já está associada a outra compra.` });
+      }
+
+      // Criar uma nova compra
+      const result = await db.query(
+        "INSERT INTO purchases (client_id) VALUES ($1) RETURNING id",
+        [client_id]
+      );
+
+      const purchaseId = result.rows[0].id;
+
+      // Adicionar a peça à compra
+      await db.query(
+        "INSERT INTO purchase_clothings (purchase_id, clothing_id) VALUES ($1, $2)",
+        [purchaseId, clothing_id]
+      );
+
+      purchaseIds.push(purchaseId);
+    }
+
+    res.status(201).json({ purchase_ids: purchaseIds });
+  } catch (err) {
+    console.error('Erro ao criar compras:', err);
+    res.status(500).json({ error: 'Erro ao registrar as compras', details: err });
+  }
+};
+
+exports.markAsDeleted = async (req, res) => { 
+  const { purchaseId } = req.params;
+
+  try {
+    const purchaseResult = await db.query(
+      "SELECT * FROM purchases WHERE id = $1 AND is_deleted = false",
+      [purchaseId]
+    );
+
+    if (purchaseResult.rowCount === 0) {
+      return res.status(404).json({ message: 'Compra não encontrada ou já deletada' });
+    }
+
+    await db.query(
+      "UPDATE purchases SET is_deleted = true WHERE id = $1",
+      [purchaseId]
+    );
+
+    res.status(200).json({ message: 'Compra marcada como deletada com sucesso' });
+  } catch (err) {
+    console.error('Erro ao deletar a compra:', err);
+    res.status(500).json({ error: 'Erro ao deletar a compra', details: err });
+  }
+};
+
+exports.markAsUndeleted = async (req, res) => { 
+  const { purchaseId } = req.params;
+
+  try {
+    const purchaseResult = await db.query(
+      "SELECT * FROM purchases WHERE id = $1",
+      [purchaseId]
+    );
+
+    if (purchaseResult.rowCount === 0) {
+      return res.status(404).json({ message: 'Compra não encontrada.' });
+    }
+
+    await db.query(
+      "UPDATE purchases SET is_deleted = false WHERE id = $1",
+      [purchaseId]
+    );
+
+    res.status(200).json({ message: 'Compra marcada como não deletada com sucesso' });
+  } catch (err) {
+    console.error('Erro ao desfazer deleção da compra:', err);
+    res.status(500).json({ error: 'Erro ao desfazer deleção da compra', details: err });
   }
 };
 
@@ -68,6 +174,7 @@ exports.getPendenciesByClient = async (req, res) => {
   }
 };
 
+// Payment
 exports.markAsPaid = async (req, res) => {
   const { purchaseId } = req.params;
   const { payment_method_id } = req.body;

@@ -35,19 +35,21 @@ export class PurchaseRegistrationComponent implements OnInit {
       return;
     }
 
-    const clothings = this.clothings_input
+    // Converte a string de IDs das peças em um array de números
+    const clothingIds = this.clothings_input
       .split(',')
-      .map(id => Number(id.trim()))
-      .filter(id => !isNaN(id));
+      .map(id => parseInt(id.trim(), 10))
+      .filter(id => !isNaN(id)); // Remove valores inválidos
 
-    if (clothings.length === 0) {
-      this.error_message = 'Nenhum ID de peça válido foi informado';
+    // Verifica se há IDs válidos
+    if (clothingIds.length === 0) {
+      this.error_message = "Por favor, insira IDs válidos para as peças.";
       return;
     }
 
     this.isLoading = true;
 
-    this.purchaseService.createPurchase(this.client_id, clothings).subscribe({
+    this.purchaseService.createPurchase(this.client_id, clothingIds).subscribe({
       next: () => {
         this.success_message = 'Compra registrada com sucesso!';
         this.resetForm();
@@ -71,7 +73,7 @@ export class PurchaseRegistrationComponent implements OnInit {
       return 'Cliente ou peça não encontrada. Verifique os IDs informados.';
     }
     if (error.status === 400) {
-      return 'Dados inválidos. Verifique as informações fornecidas.';
+      return 'Eessas peças já foram vendidas. Verifique as informações fornecidas.';
     }
     return 'Ocorreu um erro ao registrar a compra. Tente novamente.';
   }

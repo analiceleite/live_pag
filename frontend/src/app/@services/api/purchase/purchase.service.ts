@@ -4,16 +4,20 @@ import { PurchaseApi } from './purchase.api';
 import { PaymentApi } from '../shared/payment.api';
 import { Purchase, Client, PaymentMethod } from '../../models/purchase.interface';
 import { Observable, map, switchMap, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PurchaseService {
+    private baseUrl = '/api/purchases';
+
     constructor(
         private purchaseApi: PurchaseApi,
         private paymentApi: PaymentApi,
-        private snackBar: MatSnackBar
-    ) {}
+        private snackBar: MatSnackBar,
+        private http: HttpClient
+    ) { }
 
     loadPendencies(): Observable<Client[]> {
         return this.purchaseApi.getAllPendencies().pipe(
@@ -33,7 +37,7 @@ export class PurchaseService {
     markAsPaid(purchaseId: number, paymentMethodId: number): Observable<void> {
         return this.purchaseApi.markAsPaid(purchaseId, paymentMethodId).pipe(
             map(() => {
-                this.showSuccess('Pagamento registrado com sucesso!');
+                this.showMessage('Pagamento registrado com sucesso!');
             })
         );
     }
@@ -41,7 +45,7 @@ export class PurchaseService {
     markAsUnpaid(purchaseId: number): Observable<void> {
         return this.purchaseApi.markAsUnpaid(purchaseId).pipe(
             map(() => {
-                this.showSuccess('Pagamento desfeito com sucesso!');
+                this.showMessage('Pagamento desfeito com sucesso!');
             })
         );
     }
@@ -49,7 +53,7 @@ export class PurchaseService {
     markAsSent(purchaseId: number): Observable<void> {
         return this.purchaseApi.markAsSent(purchaseId).pipe(
             map(() => {
-                this.showSuccess('Entrega registrada com sucesso!');
+                this.showMessage('Entrega registrada com sucesso!');
             })
         );
     }
@@ -57,7 +61,23 @@ export class PurchaseService {
     markAsNotSent(purchaseId: number): Observable<void> {
         return this.purchaseApi.markAsNotSent(purchaseId).pipe(
             map(() => {
-                this.showSuccess('Entrega desfeita com sucesso!');
+                this.showMessage('Entrega desfeita com sucesso!');
+            })
+        );
+    }
+
+    masAsDeleted(purchaseId: number): Observable<void> {
+        return this.purchaseApi.markAsDeleted(purchaseId).pipe(
+            map(() => {
+                this.showMessage('Compra deletada com sucesso!');
+            })
+        );
+    }
+
+    markAsUndeleted(purchaseId: number): Observable<void> {
+        return this.purchaseApi.markAsUndeleted(purchaseId).pipe(
+            map(() => {
+                this.showMessage('Desfeita a deleção da compra  com sucesso!');
             })
         );
     }
@@ -66,7 +86,7 @@ export class PurchaseService {
         return this.purchaseApi.markAsNotSent(purchaseId).pipe(
             switchMap(() => this.purchaseApi.markAsUnpaid(purchaseId)),
             tap(() => {
-                this.showSuccess('Compra retornada para aberta com sucesso!');
+                this.showMessage('Compra retornada para aberta com sucesso!');
             }),
             map(() => undefined)
         );
@@ -83,9 +103,16 @@ export class PurchaseService {
     createPurchase(clientId: number, clothings: any[]): Observable<void> {
         return this.purchaseApi.createPurchase(clientId, clothings).pipe(
             map(() => {
-                this.showSuccess('Compra criada com sucesso!');
+                this.showMessage('Compra criada com sucesso!');
             })
         );
+    }
+
+    registerPurchase(clientId: number, clothingIds: string[]): Observable<void> {
+        return this.http.post<void>(`${this.baseUrl}/register`, {
+            client_id: clientId,
+            clothing_ids: clothingIds
+        });
     }
 
     private groupPurchasesByClient(purchases: Purchase[]): Purchase[] {
@@ -98,11 +125,11 @@ export class PurchaseService {
         }, []);
     }
 
-    private showSuccess(message: string): void {
+    private showMessage(message: string): void {
         this.snackBar.open(message, 'Fechar', {
             duration: 3000,
             horizontalPosition: 'right',
             verticalPosition: 'top'
         });
     }
-} 
+}

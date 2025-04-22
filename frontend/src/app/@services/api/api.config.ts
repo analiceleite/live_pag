@@ -8,6 +8,8 @@ export class ApiConfig {
         PENDENCIES: `${ApiConfig.BASE_URL}/pendencies`,
         PENDENCIES_BY_CLIENT: (clientId: number) => `${ApiConfig.BASE_URL}/pendencies-by-client/${clientId}`,
         CREATE: `${ApiConfig.BASE_URL}/purchase`,
+        MARK_AS_DELETED: (id: number) => `${ApiConfig.BASE_URL}/mark-as-deleted/${id}`,
+        MARK_AS_UNDELETED: (id: number) => `${ApiConfig.BASE_URL}/mark-as-undeleted/${id}`,
         MARK_AS_PAID: (id: number) => `${ApiConfig.BASE_URL}/mark-as-paid/${id}`,
         MARK_AS_UNPAID: (id: number) => `${ApiConfig.BASE_URL}/mark-as-unpaid/${id}`,
         REQUEST_DELIVERY: (id: number) => `${ApiConfig.BASE_URL}/delivery/request/${id}`,
