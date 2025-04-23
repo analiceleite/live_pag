@@ -25,9 +25,9 @@ export class ApiConfig {
 
     // Payment endpoints
     static readonly PAYMENT = {
-        GET_ALL: `${ApiConfig.BASE_URL}/get-payment-method`,
-        GET_ACTIVE: `${ApiConfig.BASE_URL}/get-active-payment-method`,
-        SET_ACTIVE: `${ApiConfig.BASE_URL}/set-active-payment-method`
+        GET_ALL: `${ApiConfig.BASE_URL}/methods`,
+        GET_ACTIVE: `${ApiConfig.BASE_URL}/methods/active`,
+        SET_ACTIVE: `${ApiConfig.BASE_URL}/methods/active`
     };
 
     // Pix endpoints
