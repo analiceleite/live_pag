@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
-import { PaymentApi, PaymentMethod } from '../../../../@services/api/shared/payment.api';
+import { PaymentApi, PaymentMethod, MonthlyData } from '../../../../@services/api/shared/payment.api';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -23,106 +23,94 @@ import { RouterModule } from '@angular/router';
   templateUrl: './finances.component.html'
 })
 export class FinancesComponent implements OnInit {
-  // Dados de Controle
+  // Controle de período
   selectedMonth: string = 'Abril';
   selectedYear: number = 2025;
-  
+  months: string[] = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+  years: number[] = [2023, 2024, 2025];
+
   // Métodos de pagamento
   selectedPaymentMethod: string = 'nubank';
+  selectedPaymentMethodId: number | null = null;
   paymentMethods: PaymentMethod[] = [];
   activePaymentMethod: PaymentMethod | null = null;
-  selectedPaymentMethodId: number | null = null;
 
-  // Valores de vendas
-  pixAmount: number = 15000.75;
-  cardAmount: number = 8500.50;
-  cashAmount: number = 330.00;
-  percentChange: number = 12;
-
-  // Valores de Garimpo
-  investmentAmount: number = 8750.00;
-  investmentCount: number = 3;
-  investmentCategories = [
-    { name: 'Vestidos', amount: 3500.00 },
-    { name: 'Blusas', amount: 2750.00 },
-    { name: 'Acessórios', amount: 2500.00 }
-  ];
-
-  // Pendências
-  pendingAmount: number = 3845.50;
-  pendingShipments: number = 7;
-
-  // Controle por data
-  startDate: string = '2025-04-01';
-  endDate: string = '2025-04-30';
-  
-  // Dados do período
-  periodTotalReceived: number = 24650.80;
-  periodTotalPending: number = 3845.50;
-  periodReceivedPercent: number = 32;
-  periodPendingPercent: number = 15;
-  periodSalesCount: number = 38;
-  periodNewSales: number = 8;
-  periodDeliveriesCount: number = 24;
-  periodDeliveryOnTimePercent: number = 93;
-
-  // Relatório de pendências de clientes
-  pendingClients = [
-    {
-      name: 'Ana Maria Silva',
-      initials: 'AM',
-      items: '3 vestidos',
-      totalOpen: 1250.00,
-      dueDate: '15/04/2025',
-      status: 'Em atraso (3 dias)',
-      isLate: true
-    },
-    {
-      name: 'Carla Costa',
-      initials: 'CC',
-      items: '1 conjunto',
-      totalOpen: 890.50,
-      dueDate: '20/04/2025',
-      status: 'No prazo',
-      isLate: false
-    },
-    {
-      name: 'Joana Santos',
-      initials: 'JS',
-      items: '2 blusas, 1 calça',
-      totalOpen: 745.00,
-      dueDate: '25/04/2025',
-      status: 'No prazo',
-      isLate: false
-    },
-    {
-      name: 'Roberto Ferreira',
-      initials: 'RF',
-      items: '5 camisas',
-      totalOpen: 960.00,
-      dueDate: '30/04/2025',
-      status: 'No prazo',
-      isLate: false
-    }
-  ];
+  // Valores financeiros
+  picpayAmount: number = 0;
+  nubankAmount: number = 0;
+  investmentAmount: number = 0;
+  monthlyTotal: number = 0;
 
   constructor(private paymentService: PaymentApi) {}
 
   ngOnInit(): void {
-    this.initializeCharts();
     this.loadPaymentMethods();
-    this.loadActivePaymentMethod();
+    this.loadMonthlyData();
   }
 
   loadPaymentMethods(): void {
     this.paymentService.getAll().subscribe({
       next: (methods) => {
         this.paymentMethods = methods;
-        console.log('Métodos de pagamento carregados com sucesso');
+      },
+      error: (error) => console.error('Erro:', error)
+    });
+  }
+
+  onPaymentMethodChange(): void {
+    this.paymentService.setActive(this.selectedPaymentMethod).subscribe({
+      next: () => this.loadMonthlyData(),
+      error: (error) => console.error('Erro:', error)
+    });
+  }
+
+  onPeriodChange(): void {
+    this.loadMonthlyData();
+  }
+
+  loadMonthlyData(): void {
+    const period = {
+      month: this.selectedMonth,
+      year: this.selectedYear
+    };
+
+    this.paymentService.getMonthlyData(period).subscribe({
+      next: (data) => {
+        this.picpayAmount = data.picpayAmount;
+        this.nubankAmount = data.nubankAmount;
+        this.investmentAmount = data.investmentAmount;
+        this.monthlyTotal = data.totalAmount || (data.picpayAmount + data.nubankAmount);
       },
       error: (error) => {
-        console.error('Erro ao carregar métodos de pagamento:', error);
+        console.error('Erro ao carregar dados mensais:', error);
+        // Zerar os valores em caso de erro
+        this.picpayAmount = 0;
+        this.nubankAmount = 0;
+        this.investmentAmount = 0;
+        this.monthlyTotal = 0;
       }
+    });
+  }
+
+  exportToExcel(): void {
+    const period = {
+      month: this.selectedMonth,
+      year: this.selectedYear
+    };
+
+    this.paymentService.exportMonthlyData(period).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `financeiro-${this.selectedMonth}-${this.selectedYear}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => console.error('Erro:', error)
     });
   }
 
@@ -132,66 +120,9 @@ export class FinancesComponent implements OnInit {
         this.activePaymentMethod = method;
         this.selectedPaymentMethod = method?.name?.toLowerCase() || '';
         this.selectedPaymentMethodId = method.id;
-        console.log('Método de pagamento ativo carregado com sucesso');
+        this.loadMonthlyData();
       },
-      error: (error) => {
-        console.error('Erro ao carregar método de pagamento ativo:', error);
-      }
+      error: (error) => console.error('Erro:', error)
     });
-  }
-
-  onPaymentMethodChange(): void {
-    this.paymentService.setActive(this.selectedPaymentMethod).subscribe({
-      next: () => {
-        console.log('Método de pagamento atualizado com sucesso');
-        this.loadActivePaymentMethod();
-      },
-      error: (error) => {
-        console.error('Erro ao atualizar método de pagamento:', error);
-      }
-    });
-  }
-
-  exportToExcel(): void {
-    console.log('Exportando dados para Excel...');
-  }
-
-  processPayment(amount: number): void {
-    if (this.activePaymentMethod) {
-      this.processPaymentMethod(amount);
-    }
-  }
-
-  private processPaymentMethod(amount: number): void {
-    console.log(`Processando pagamento de R$ ${amount} via ${this.activePaymentMethod?.name}`);
-  }
-
-  applyDateFilter(): void {
-    console.log(`Aplicando filtro de data: ${this.startDate} até ${this.endDate}`);
-    this.updateDateRangeChart();
-  }
-
-  private initializeCharts(): void {    
-    setTimeout(() => {
-      this.initPurchaseChart();
-      this.initInvestmentChart();
-      this.initDateRangeChart();
-    }, 0);
-  }
-
-  private initPurchaseChart(): void {
-    console.log('Initializing purchase chart');
-  }
-
-  private initInvestmentChart(): void {
-    console.log('Initializing investment chart');
-  }
-
-  private initDateRangeChart(): void {
-    console.log('Initializing date range chart');
-  }
-
-  private updateDateRangeChart(): void {
-    console.log('Updating date range chart');
   }
 }

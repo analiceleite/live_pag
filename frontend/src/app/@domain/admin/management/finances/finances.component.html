@@ -1,346 +1,145 @@
-<div class="w-full max-w-full mx-auto px-4 py-6 bg-gray-100">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-chart-line text-green-600 mr-3"></i>
-                Dashboard Financeiro
-            </h1>
-            <p class="text-gray-500 mt-1">Controle financeiro da sua loja de roupas</p>
+<div class="min-h-screen bg-gray-50 flex items-center">
+  <div class="w-full max-w-5xl mx-auto px-4 py-8">
+    <!-- Header com Filtros -->
+    <div class="bg-white p-5 rounded-xl shadow-md mb-5">
+      <div class="flex flex-col gap-4">
+        <!-- Título e Voltar -->
+        <div class="flex justify-between items-center">
+          <h1 class="text-2xl font-bold text-gray-800">Gestão Financeira</h1>
+          <a [routerLink]="['/menu']" class="flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Voltar
+          </a>
         </div>
-        <div class="flex items-center gap-4">
-            <a [routerLink]="['/menu']" class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm shadow transition">
-                <i class="fas fa-arrow-left"></i>
-                Voltar ao Menu
-            </a>
-            <span class="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full flex items-center">
-                <i class="fas fa-calendar-day mr-1"></i> Atualizado hoje
-            </span>
+          
+        <!-- Filtros -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- Período -->
+          <div class="flex gap-2">
+            <div class="w-1/2 relative">
+              <label for="month" class="block text-xs font-medium text-gray-600 mb-1">Mês</label>
+              <select id="month" [(ngModel)]="selectedMonth" (change)="onPeriodChange()"
+                  class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                  <option *ngFor="let month of months" [value]="month">{{month}}</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 pt-5 text-gray-700">
+                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="w-1/2 relative">
+              <label for="year" class="block text-xs font-medium text-gray-600 mb-1">Ano</label>
+              <select id="year" [(ngModel)]="selectedYear" (change)="onPeriodChange()"
+                  class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                  <option *ngFor="let year of years" [value]="year">{{year}}</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 pt-5 text-gray-700">
+                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+            
+          <!-- Método de Pagamento -->
+          <div class="relative">
+            <label for="payment-method" class="block text-xs font-medium text-gray-600 mb-1">Método de Pagamento</label>
+            <select id="payment-method" 
+                [(ngModel)]="selectedPaymentMethod" 
+                (change)="onPaymentMethodChange()"
+                class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                <option *ngFor="let method of paymentMethods" 
+                        [value]="method.name.toLowerCase()"
+                        [selected]="method.id === selectedPaymentMethodId">
+                  {{method.name}}
+                </option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 pt-5 text-gray-700">
+              <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+              </svg>
+            </div>
+          </div>
+            
+          <!-- Exportar -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Exportar Dados</label>
+            <button (click)="exportToExcel()"
+                class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Exportar Relatório
+            </button>
+          </div>
         </div>
+      </div>
     </div>
-
-    <!-- Filtros e Exportação -->
-    <div class="bg-white p-4 rounded-xl shadow-md mb-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <!-- Filtros de Data -->
-            <div class="flex flex-wrap gap-4">
-                <div class="flex items-center">
-                    <i class="fas fa-filter text-gray-400 mr-2"></i>
-                    <span class="text-sm font-medium text-gray-600 mr-3">Filtros:</span>
-                </div>
-                <!-- Mês e Ano -->
-                <div class="flex items-center gap-2">
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">
-                            <i class="far fa-calendar-alt mr-1"></i> Mês
-                        </label>
-                        <select
-                            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                            [(ngModel)]="selectedMonth">
-                            <option>Janeiro</option>
-                            <option>Fevereiro</option>
-                            <option>Março</option>
-                            <option>Abril</option>
-                            <option>Maio</option>
-                            <option>Junho</option>
-                            <option>Julho</option>
-                            <option>Agosto</option>
-                            <option>Setembro</option>
-                            <option>Outubro</option>
-                            <option>Novembro</option>
-                            <option>Dezembro</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">
-                            <i class="far fa-calendar mr-1"></i> Ano
-                        </label>
-                        <select
-                            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                            [(ngModel)]="selectedYear">
-                            <option>2023</option>
-                            <option>2024</option>
-                            <option>2025</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Método de Pagamento e Ações -->
-            <div class="flex items-center gap-4">
-                <!-- Select para Método de Pagamento -->
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-gray-600">Método de Pagamento:</span>
-                    <select
-                        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                        [(ngModel)]="selectedPaymentMethod"
-                        (change)="onPaymentMethodChange()">
-                        <option value="nubank">Nubank</option>
-                        <option value="picpay">PicPay</option>
-                    </select>
-                </div>
-
-                <!-- Botões de ação -->
-                <div class="flex gap-2">
-                    <button (click)="exportToExcel()"
-                        class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm shadow-md hover:shadow-lg transition-all">
-                        <i class="fas fa-file-excel"></i>
-                        <span class="font-medium">Exportar Excel</span>
-                    </button>
-                </div>
-            </div>
+      
+    <!-- Resumo Financeiro -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Total Mensal -->
+      <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-green-500 hover:shadow-lg transition-shadow duration-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">Total Mensal</h3>
+            <p class="text-2xl font-bold text-green-600">R$ {{monthlyTotal | number:'1.2-2'}}</p>
+          </div>
+          <div class="p-2 bg-green-100 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
         </div>
+      </div>
+        
+      <!-- PicPay -->
+      <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-blue-500 hover:shadow-lg transition-shadow duration-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">PicPay</h3>
+            <p class="text-2xl font-bold text-blue-600">R$ {{picpayAmount | number:'1.2-2'}}</p>
+          </div>
+          <div class="p-2 bg-blue-100 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+        
+      <!-- Nubank -->
+      <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-purple-500 hover:shadow-lg transition-shadow duration-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">Nubank</h3>
+            <p class="text-2xl font-bold text-purple-600">R$ {{nubankAmount | number:'1.2-2'}}</p>
+          </div>
+          <div class="p-2 bg-purple-100 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+        
+      <!-- Garimpos -->
+      <div class="bg-white p-4 rounded-xl shadow-md border-l-4 border-orange-500 hover:shadow-lg transition-shadow duration-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-sm font-medium text-gray-500 mb-1">Investido em Garimpos</h3>
+            <p class="text-2xl font-bold text-orange-600">R$ {{investmentAmount | number:'1.2-2'}}</p>
+          </div>
+          <div class="p-2 bg-orange-100 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- Resumo Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <!-- Total Recebido -->
-        <div
-            class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-sm text-gray-500 mb-1">Total Recebido</p>
-                    <h3 class="text-2xl font-bold text-green-600">R$ {{ pixAmount + cardAmount | number: '1.2-2' }}</h3>
-                </div>
-                <div class="bg-green-100 p-3 rounded-lg">
-                    <i class="fas fa-money-bill-wave text-green-600 text-xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-xs text-green-600">
-                <i class="fas fa-arrow-up mr-1"></i>
-                <span>{{ percentChange }}% comparado ao mês anterior</span>
-            </div>
-        </div>
-
-        <!-- Pendente -->
-        <div
-            class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-sm text-gray-500 mb-1">Total Pendente</p>
-                    <h3 class="text-2xl font-bold text-yellow-500">R$ {{ pendingAmount | number: '1.2-2' }}</h3>
-                </div>
-                <div class="bg-yellow-100 p-3 rounded-lg">
-                    <i class="fas fa-hourglass-half text-yellow-500 text-xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-xs text-yellow-600">
-                <i class="fas fa-users mr-1"></i>
-                <span>{{ pendingClients.length }} clientes com pagamentos a receber</span>
-            </div>
-        </div>
-
-        <!-- Investido -->
-        <div
-            class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-sm text-gray-500 mb-1">Investido em Garimpos</p>
-                    <h3 class="text-2xl font-bold text-blue-600">R$ {{ investmentAmount | number: '1.2-2' }}</h3>
-                </div>
-                <div class="bg-blue-100 p-3 rounded-lg">
-                    <i class="fas fa-shopping-bag text-blue-600 text-xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-xs text-blue-600">
-                <i class="fas fa-tag mr-1"></i>
-                <span>{{ investmentCount }} compras no mês atual</span>
-            </div>
-        </div>
-
-        <!-- Aguardando Envio -->
-        <div
-            class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition duration-300 transform hover:-translate-y-1">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-sm text-gray-500 mb-1">Aguardando Envio</p>
-                    <h3 class="text-2xl font-bold text-purple-600">{{ pendingShipments }}</h3>
-                </div>
-                <div class="bg-purple-100 p-3 rounded-lg">
-                    <i class="fas fa-shipping-fast text-purple-600 text-xl"></i>
-                </div>
-            </div>
-            <div class="mt-4 flex items-center text-xs text-purple-600">
-                <i class="fas fa-clock mr-1"></i>
-                <span>Pedidos prontos para despacho</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Gráfico e Resumo Financeiro -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Compras Pagas -->
-        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
-            <div class="border-b border-gray-100 pb-4 mb-4">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                    <i class="fas fa-credit-card text-green-600 mr-2"></i>
-                    Recebimentos por Método de Pagamento
-                </h3>
-            </div>
-            <div class="text-2xl text-green-600 mb-4">R$ {{ pixAmount + cardAmount | number: '1.2-2' }}</div>
-            <canvas id="purchaseChart"></canvas>
-            <div class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
-                <div class="bg-green-50 p-2 rounded">
-                    <p class="text-gray-500">PIX</p>
-                    <p class="font-bold text-green-600">R$ {{ pixAmount | number: '1.2-2' }}</p>
-                </div>
-                <div class="bg-green-50 p-2 rounded">
-                    <p class="text-gray-500">Cartão</p>
-                    <p class="font-bold text-green-600">R$ {{ cardAmount | number: '1.2-2' }}</p>
-                </div>
-                <div class="bg-green-50 p-2 rounded">
-                    <p class="text-gray-500">Dinheiro</p>
-                    <p class="font-bold text-green-600">R$ {{ cashAmount | number: '1.2-2' }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Garimpos -->
-        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
-            <div class="border-b border-gray-100 pb-4 mb-4">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                    <i class="fas fa-shopping-bag text-blue-600 mr-2"></i>
-                    Investimentos em Garimpo por Categoria
-                </h3>
-            </div>
-            <div class="text-2xl text-blue-600 mb-4">R$ {{ investmentAmount | number: '1.2-2' }}</div>
-            <canvas id="investmentChart"></canvas>
-            <div class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
-                <div class="bg-blue-50 p-2 rounded" *ngFor="let category of investmentCategories">
-                    <p class="text-gray-500">{{ category.name }}</p>
-                    <p class="font-bold text-blue-600">R$ {{ category.amount | number: '1.2-2' }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pendências de Clientes -->
-    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300 mb-6">
-        <div class="border-b border-gray-100 pb-4 mb-4 flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                <i class="fas fa-exclamation-circle text-yellow-500 mr-2"></i>
-                Pendências de Clientes
-            </h3>
-            <div class="flex items-center gap-2">
-                <button class="text-sm text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-search mr-1"></i> Filtrar
-                </button>
-                <button class="text-sm text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-envelope mr-1"></i> Enviar Lembretes
-                </button>
-            </div>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full table-auto">
-                <thead>
-                    <tr class="text-left bg-gray-50 text-gray-600">
-                        <th class="px-4 py-3 text-sm font-medium rounded-l-lg">Cliente</th>
-                        <th class="px-4 py-3 text-sm font-medium">Itens</th>
-                        <th class="px-4 py-3 text-sm font-medium">Total em Aberto</th>
-                        <th class="px-4 py-3 text-sm font-medium">Data de Vencimento</th>
-                        <th class="px-4 py-3 text-sm font-medium rounded-r-lg">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let client of pendingClients" class="border-b border-gray-100">
-                        <td class="px-4 py-3 text-sm">
-                            <div class="flex items-center">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-medium mr-2">
-                                    {{ client.initials }}
-                                </div>
-                                <span>{{ client.name }}</span>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 text-sm">{{ client.items }}</td>
-                        <td class="px-4 py-3 text-sm font-medium">R$ {{ client.totalOpen | number: '1.2-2' }}</td>
-                        <td class="px-4 py-3 text-sm">{{ client.dueDate }}</td>
-                        <td class="px-4 py-3 text-sm">
-                            <span
-                                [ngClass]="client.isLate ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
-                                class="text-xs px-2 py-1 rounded-full">
-                                {{ client.status }}
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Visualização de Pendências por Data -->
-    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300 mb-6">
-        <div class="border-b border-gray-100 pb-4 mb-4">
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                <i class="fas fa-calendar-alt text-purple-600 mr-2"></i>
-                Visualização de Pendências e Recebimentos por Período
-            </h3>
-        </div>
-        <div class="flex flex-wrap gap-4 mb-6">
-            <!-- Seletor de Data -->
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">
-                    <i class="far fa-calendar mr-1"></i> Data Inicial
-                </label>
-                <input type="date"
-                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    [(ngModel)]="startDate">
-            </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">
-                    <i class="far fa-calendar mr-1"></i> Data Final
-                </label>
-                <input type="date"
-                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    [(ngModel)]="endDate">
-            </div>
-            <div class="flex items-end">
-                <button (click)="applyDateFilter()"
-                    class="flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm shadow transition">
-                    <i class="fas fa-search mr-1"></i> Aplicar
-                </button>
-            </div>
-        </div>
-
-        <!-- Gráfico de Pendências por Data -->
-        <div class="mt-2">
-            <canvas id="dateRangeChart"></canvas>
-        </div>
-
-        <!-- Indicadores de período -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <p class="text-xs text-gray-500">Total Recebido</p>
-                <p class="text-lg font-semibold text-green-600">R$ {{ periodTotalReceived | number: '1.2-2' }}</p>
-                <div class="flex items-center mt-1 text-xs text-green-600">
-                    <i class="fas fa-arrow-up mr-1"></i>
-                    <span>{{ periodReceivedPercent }}% no período</span>
-                </div>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <p class="text-xs text-gray-500">Total Pendente</p>
-                <p class="text-lg font-semibold text-yellow-600">R$ {{ periodTotalPending | number: '1.2-2' }}</p>
-                <div class="flex items-center mt-1 text-xs text-yellow-600">
-                    <i class="fas fa-arrow-down mr-1"></i>
-                    <span>{{ periodPendingPercent }}% no período</span>
-                </div>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <p class="text-xs text-gray-500">Vendas Realizadas</p>
-                <p class="text-lg font-semibold text-blue-600">{{ periodSalesCount }}</p>
-                <div class="flex items-center mt-1 text-xs text-blue-600">
-                    <i class="fas fa-arrow-up mr-1"></i>
-                    <span>{{ periodNewSales }} novas vendas</span>
-                </div>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-lg">
-                <p class="text-xs text-gray-500">Entregas Realizadas</p>
-                <p class="text-lg font-semibold text-purple-600">{{ periodDeliveriesCount }}</p>
-                <div class="flex items-center mt-1 text-xs text-purple-600">
-                    <i class="fas fa-shipping-fast mr-1"></i>
-                    <span>{{ periodDeliveryOnTimePercent }}% no prazo</span>
-                </div>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
