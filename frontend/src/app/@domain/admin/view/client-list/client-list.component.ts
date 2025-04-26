@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,14 +26,14 @@ import { BackToMenuComponent } from '../../../../@common/components/back-to-menu
   templateUrl: './client-list.component.html'
 })
 export class ClientListComponent implements OnInit {
-  clients: any[] = [];  
-  filter: string = '';  
-  showDeleteModal: boolean = false;  
-  showEditModal: boolean = false;   
-  clientToDelete: any = null;      
-  clientToEdit: any = { name: '', instagram: '', cpf: '', phone: '', zip_code: '', address: '', reference_point: '' };  
+  clients: any[] = [];
+  filter: string = '';
+  showDeleteModal: boolean = false;
+  showEditModal: boolean = false;
+  clientToDelete: any = null;
+  clientToEdit: any = { name: '', instagram: '', cpf: '', phone: '', zip_code: '', address: '', reference_point: '' };
 
-  constructor(private clientService: ClientApi) {}
+  constructor(private clientService: ClientApi, private router: Router) { }
 
   ngOnInit(): void {
     this.clientService.client$.subscribe((clients) => {
@@ -44,11 +45,11 @@ export class ClientListComponent implements OnInit {
 
   editClient(client: any) {
     this.clientToEdit = { ...client };
-    this.showEditModal = true;  
+    this.showEditModal = true;
   }
 
   closeEditModal() {
-    this.showEditModal = false; 
+    this.showEditModal = false;
   }
 
   updateClient() {
@@ -58,19 +59,23 @@ export class ClientListComponent implements OnInit {
   }
 
   deleteClient(client: any) {
-    this.clientToDelete = client;  
-    this.showDeleteModal = true;   
+    this.clientToDelete = client;
+    this.showDeleteModal = true;
   }
 
   closeDeleteModal() {
-    this.showDeleteModal = false; 
+    this.showDeleteModal = false;
   }
 
   confirmDelete() {
     if (this.clientToDelete) {
       this.clientService.delete(this.clientToDelete.id).subscribe(() => {
-        this.closeDeleteModal(); 
+        this.closeDeleteModal();
       });
     }
+  }
+
+  gotToNewClient(): void {
+    this.router.navigate(['/cadastro-clientes']);
   }
 }

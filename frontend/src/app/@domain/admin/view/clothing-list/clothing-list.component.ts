@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,7 +33,7 @@ export class ClothingListComponent implements OnInit {
   pieceToDelete: any = null;
   pieceToEdit: any = null;
 
-  constructor(private clothingService: ClothingApi) {}
+  constructor(private clothingService: ClothingApi, private router: Router) {}
 
   ngOnInit() {
     this.getClothings();
@@ -80,5 +81,9 @@ export class ClothingListComponent implements OnInit {
         this.closeDeleteModal();
       });
     }
+  }
+
+  gotToNewClothing(): void {
+    this.router.navigate(['/cadastro-pecas']);
   }
 }
