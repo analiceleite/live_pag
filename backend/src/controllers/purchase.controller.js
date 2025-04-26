@@ -4,7 +4,7 @@ exports.getAllPendencies = async (req, res) => {
   try {
     const result = await db.query(
       `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, p.is_delivery_sent, p.is_deleted,
-              c.cpf, c.name AS client, cl.name AS clothing, cl.price, pm.name AS payment_method
+              c.cpf, c.phone, c.name AS client, cl.name AS clothing, cl.price, pm.name AS payment_method
        FROM purchases p
        JOIN clients c ON p.client_id = c.id
        JOIN purchase_clothings pc ON p.id = pc.purchase_id
@@ -21,6 +21,7 @@ exports.getAllPendencies = async (req, res) => {
         acc[clientKey] = {
           client: row.client,
           cpf: row.cpf,
+          phone: row.phone,
           total_amount: 0,
           purchases: []
         };

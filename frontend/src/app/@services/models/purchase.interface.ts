@@ -13,6 +13,7 @@ export interface Purchase {
 
 export interface PurchaseWithUI extends Purchase {
     showPaymentOptions?: boolean;
+    showDeleteOption?: boolean;
 }
 
 export interface ClientPendencies {
@@ -22,6 +23,8 @@ export interface ClientPendencies {
     purchases: PurchaseWithUI[];
     delivery_requested?: boolean;
     payment_method?: string;
+    phone?: string;
+    purchase_groups: PurchaseGroup[];
 }
 
 export interface Client {
@@ -37,6 +40,7 @@ export interface Client {
     price: string;
     payment_method: any;
     purchases: Purchase[];
+    phone?: string;
 }
 
 export interface PaymentMethod {
@@ -45,7 +49,18 @@ export interface PaymentMethod {
 }
 
 export interface PurchaseGroup {
-    [key: string]: Purchase[];
+    date: string;
+    purchases: PurchaseWithUI[];
+    total_amount: number;
+    is_paid: boolean;
+    is_delivery_sent: boolean;
+    is_deleted: boolean;
+    is_delivery_asked: boolean;
+    delivery_requested?: boolean;  
+    payment_method?: string;
+    showPaymentOptions?: boolean; 
+    showDeleteOption?: boolean;
+    isExpanded?: boolean;
 }
 
 export interface ApiResponse<T> {
