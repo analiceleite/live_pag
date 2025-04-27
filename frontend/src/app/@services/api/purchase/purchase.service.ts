@@ -3,15 +3,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PurchaseApi } from './purchase.api';
 import { PaymentApi } from '../shared/payment.api';
 import { Purchase, Client, PaymentMethod } from '../../models/purchase.interface';
-import { Observable, map, switchMap, tap } from 'rxjs';
+import { Observable, map, switchMap, tap, catchError, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { ApiConfig } from '../api.config';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PurchaseService {
-    private baseUrl = '/api/purchases';
-
     constructor(
         private purchaseApi: PurchaseApi,
         private paymentApi: PaymentApi,
@@ -109,10 +108,25 @@ export class PurchaseService {
     }
 
     registerPurchase(clientId: number, clothingIds: string[]): Observable<void> {
-        return this.http.post<void>(`${this.baseUrl}/register`, {
-            client_id: clientId,
-            clothing_ids: clothingIds
-        });
+        return this.purchaseApi.createPurchase(clientId, clothingIds).pipe(
+            tap(() => this.showMessage('Compra registrada com sucesso!'))
+        );
+    }
+
+    updateTrackingCode(purchaseId: number, tracking_code: string | null): Observable<any> {
+        // Convert empty string to null
+        const code = tracking_code === '' ? null : tracking_code;
+        
+        return this.purchaseApi.updateTracking(purchaseId, code).pipe(
+            tap(() => {
+                this.showMessage('Entrega registrada com sucesso!');
+            }),
+            catchError(error => {
+                const errorMessage = error.error?.message || 'Erro ao registrar entrega';
+                this.showMessage(errorMessage);
+                return throwError(() => error);
+            })
+        );
     }
 
     private groupPurchasesByClient(purchases: Purchase[]): Purchase[] {

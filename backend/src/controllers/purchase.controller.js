@@ -1,9 +1,12 @@
 const db = require('../database');
 
+// Get all purchases with their details
 exports.getAllPendencies = async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, p.is_delivery_sent, p.is_deleted,
+      `SELECT p.id AS purchase_id, 
+              (p.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date AS created_at, 
+              p.is_paid, p.is_delivery_asked, p.tracking_code, p.is_delivery_sent, p.is_deleted,
               c.cpf, c.phone, c.name AS client, cl.name AS clothing, cl.price, pm.name AS payment_method
        FROM purchases p
        JOIN clients c ON p.client_id = c.id
@@ -13,7 +16,6 @@ exports.getAllPendencies = async (req, res) => {
        ORDER BY c.name, p.created_at DESC`
     );
 
-    // Agrupar pendências por cliente
     const groupedPendencies = result.rows.reduce((acc, row) => {
       const clientKey = row.cpf; 
 
@@ -37,7 +39,8 @@ exports.getAllPendencies = async (req, res) => {
         is_deleted: row.is_deleted,
         clothing: row.clothing,
         price: parseFloat(row.price),
-        payment_method: row.payment_method
+        payment_method: row.payment_method,
+        tracking_code: row.tracking_code 
       });
 
       // Atualizar o total do cliente
@@ -283,6 +286,25 @@ exports.markAsNotSent = (req, res) => {
       console.error('Erro ao desfazer envio:', error);
       res.status(500).json({ message: 'Erro ao desfazer envio', error });
     });
+};
+
+
+// Tracking code
+exports.updateTrackingCode = async (req, res) => {
+    const { purchaseId } = req.params;
+    const { tracking_code } = req.body;
+
+    try {
+        await db.query(
+            "UPDATE purchases SET tracking_code = $1 WHERE id = $2",
+            [tracking_code, purchaseId]
+        );
+
+        res.status(200).json({ message: 'Código de rastreio atualizado com sucesso' });
+    } catch (err) {
+        console.error('Erro ao atualizar código de rastreio:', err);
+        res.status(500).json({ message: 'Erro ao atualizar código de rastreio', error: err });
+    }
 };
 
 

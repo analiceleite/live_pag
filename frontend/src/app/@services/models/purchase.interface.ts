@@ -9,6 +9,7 @@ export interface Purchase {
     payment_method: string;
     price: string;
     clothing: string;
+    tracking_code?: string;
 }
 
 export interface PurchaseWithUI extends Purchase {
@@ -50,6 +51,7 @@ export interface PaymentMethod {
 
 export interface PurchaseGroup {
     date: string;
+    tracking_code?: string;
     purchases: PurchaseWithUI[];
     total_amount: number;
     is_paid: boolean;

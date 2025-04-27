@@ -65,4 +65,11 @@ export class PurchaseApi {
   markAsUndeleted(purchaseId: number): Observable<any> {
     return this.http.patch(ApiConfig.PURCHASE.MARK_AS_UNDELETED(purchaseId), {}, { headers: this.getHeaders() });
   }
+
+  updateTracking(purchaseId: number, tracking: string | null): Observable<any> {
+    return this.http.patch(ApiConfig.PURCHASE.UPDATE_TRACKING(purchaseId), 
+      { tracking_code: tracking }, // now sending null directly
+      { headers: this.getHeaders() }
+    );
+  }
 }

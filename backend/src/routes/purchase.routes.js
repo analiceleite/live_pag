@@ -5,6 +5,7 @@ const auth = require('../middlewares/auth.middleware');
 
 // Purchase
 router.post('/purchase', auth('admin'), controller.createPurchase);
+router.patch('/purchases/:purchaseId/tracking', auth('admin'), controller.updateTrackingCode);
 
 // Payments
 router.get('/pendencies', auth('admin'), controller.getAllPendencies);
@@ -20,4 +21,4 @@ router.put('/delivery/send/:purchaseId', auth('admin'), controller.markAsSent);
 router.put('/delivery/cancel-send/:purchaseId', auth('admin'), controller.markAsNotSent);
 router.get('/deliveries-requested', auth('admin'), controller.getAllDeliveriesRequested);
 
-module.exports = router;
+module.exports = router;module.exports = router;

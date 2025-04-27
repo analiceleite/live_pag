@@ -39,6 +39,11 @@ export class PendenciesComponent implements OnInit {
     filter: string = '';
     selected_client_cpf: string | null = null;
 
+    showTrackingDialog: boolean = false;
+    trackingCode: string = '';
+    selectedGroupDate?: string;
+    selectedClientCpf?: string;
+
     constructor(
         private purchaseService: PurchaseService, 
         private router: Router,
@@ -57,7 +62,6 @@ export class PendenciesComponent implements OnInit {
     private loadPendencies(): void {
         this.purchaseService.loadPendencies().subscribe((clients: Client[]) => {
             this.clients = clients.map(client => {
-                // Group purchases by date
                 const purchasesByDate = client.purchases.reduce((groups, purchase) => {
                     const date = purchase.created_at?.split('T')[0] || 'No Date';
                     if (!groups[date]) {
@@ -66,7 +70,8 @@ export class PendenciesComponent implements OnInit {
                     groups[date].push({
                         ...purchase,
                         showPaymentOptions: false,
-                        showDeleteOption: false
+                        showDeleteOption: false,
+                        tracking_code: purchase.tracking_code || '',
                     });
                     return groups;
                 }, {} as { [key: string]: PurchaseWithUI[] });
@@ -79,11 +84,12 @@ export class PendenciesComponent implements OnInit {
                     is_delivery_sent: purchases.every(p => p.is_delivery_sent),
                     is_deleted: purchases.every(p => p.is_deleted),
                     is_delivery_asked: purchases.some(p => p.is_delivery_asked),
-                    delivery_requested: purchases.some(p => p.is_delivery_asked),  // Add this line
+                    delivery_requested: purchases.some(p => p.is_delivery_asked), 
                     payment_method: purchases.find(p => p.payment_method)?.payment_method,
+                    tracking_code: purchases.find(p => p.tracking_code)?.tracking_code || '',
                     showPaymentOptions: false,
                     showDeleteOption: false,
-                    isExpanded: false // Initialize expanded state
+                    isExpanded: false 
                 }));
 
                 const clientPendencies: ClientPendencies = {
@@ -227,7 +233,9 @@ export class PendenciesComponent implements OnInit {
                     this.purchaseService.markAsUndeleted(purchase.id || purchase.purchase_id).subscribe(() => {
                         this.purchaseService.markAsNotSent(purchase.id || purchase.purchase_id).subscribe(() => {
                             this.purchaseService.markAsUnpaid(purchase.id || purchase.purchase_id).subscribe(() => {
-                                resolve();
+                                this.purchaseService.updateTrackingCode(purchase.id || purchase.purchase_id, null).subscribe(() => {
+                                    resolve();
+                                });
                             });
                         });
                     });
@@ -239,6 +247,7 @@ export class PendenciesComponent implements OnInit {
                 group.is_delivery_sent = false;
                 group.is_deleted = false;
                 group.payment_method = '';
+                group.tracking_code = ''; 
                 this.selected_tab = 'open';
                 this.loadPendencies();
             });
@@ -406,5 +415,53 @@ export class PendenciesComponent implements OnInit {
 
     hasGroupDeliveryRequested(group: PurchaseGroup): boolean {
         return group.purchases.some(p => p.is_delivery_asked);
+    }
+
+    openTrackingDialog(date: string, cpf: string) {
+        this.showTrackingDialog = true;
+        this.selectedGroupDate = date;
+        this.selectedClientCpf = cpf;
+        this.trackingCode = '';
+    }
+
+    cancelTracking() {
+        this.showTrackingDialog = false;
+        this.trackingCode = '';
+        this.selectedGroupDate = undefined;
+        this.selectedClientCpf = undefined;
+    }
+
+    confirmTracking() {
+        if (!this.selectedGroupDate || !this.selectedClientCpf) {
+            return;
+        }
+
+        const client = this.clients.find(c => c.cpf === this.selectedClientCpf);
+        if (client) {
+            const group = client.purchase_groups.find(g => g.date === this.selectedGroupDate);
+            if (group) {
+                const updatePromises = group.purchases.map(purchase =>
+                    this.purchaseService.updateTrackingCode(
+                        purchase.id || purchase.purchase_id, 
+                        this.trackingCode || null
+                    ).toPromise()
+                );
+
+                Promise.all(updatePromises).then(() => {
+                    this.markGroupAsSent(this.selectedGroupDate!, this.selectedClientCpf!);
+                    group.tracking_code = this.trackingCode || '';
+                    this.cancelTracking();
+                });
+            }
+        }
+    }
+
+    hasDeliverySent(client: any): boolean {
+        return client.purchase_groups.some((group: any) => group.is_delivery_sent);
+    }
+
+    getTrackingCode(client: any): string {
+        const group = client.purchase_groups.find((group: any) => group.is_delivery_sent);
+        return group ? group.tracking_code : '';
     }
 }

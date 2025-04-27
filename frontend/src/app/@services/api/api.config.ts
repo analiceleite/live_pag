@@ -15,7 +15,9 @@ export class ApiConfig {
         REQUEST_DELIVERY: (id: number) => `${ApiConfig.BASE_URL}/delivery/request/${id}`,
         MARK_AS_SENT: (id: number) => `${ApiConfig.BASE_URL}/delivery/send/${id}`,
         MARK_AS_NOT_SENT: (id: number) => `${ApiConfig.BASE_URL}/delivery/cancel-send/${id}`,
-        DELIVERIES_REQUESTED: `${ApiConfig.BASE_URL}/deliveries-requested`
+        DELIVERIES_REQUESTED: `${ApiConfig.BASE_URL}/deliveries-requested`,
+        REGISTER: `${ApiConfig.BASE_URL}/purchases/register`,
+        UPDATE_TRACKING: (id: number) => `${ApiConfig.BASE_URL}/purchases/${id}/tracking`
     };
 
     // Auth endpoints
@@ -50,4 +52,4 @@ export class ApiConfig {
         UPDATE: (id: number) => `${ApiConfig.BASE_URL}/clothing/${id}`,
         DELETE: (id: number) => `${ApiConfig.BASE_URL}/clothing/${id}`
     };
-} 
+}
