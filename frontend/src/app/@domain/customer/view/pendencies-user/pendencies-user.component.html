@@ -1,80 +1,237 @@
-<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 p-6">
-    <div class="max-w-6xl mx-auto space-y-6">
-        <!-- Cabeçalho do Cliente -->
-        <div class="bg-white rounded-2xl shadow-sm p-8">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div class="space-y-2">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-gray-800">{{ logged_client.client }}</h2>
-                            <p class="text-gray-500 text-sm">{{ logged_client.cpf }}</p>
-                        </div>
+<div class="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-blue-100 p-4 md:p-6 font-sans">
+    <div class="max-w-5xl mx-auto space-y-6">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="flex justify-center items-center min-h-[300px]">
+            <div class="flex flex-col items-center gap-3">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p class="text-gray-600 font-medium">Carregando seus dados...</p>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="error" class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-sm">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span>{{ error }}</span>
+            </div>
+        </div>
+
+        <!-- Client Header -->
+        <div *ngIf="!isLoading && !error && logged_client" class="bg-white rounded-2xl shadow p-6 md:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+                <!-- Client Info -->
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-700 font-medium">Total em Aberto:</span>
-                        <span class="text-2xl font-bold text-red-600">
-                            R$ {{ getTotalAmount(logged_client.purchases) | number: '1.2-2' }}
-                        </span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">{{ logged_client.client }}</h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-gray-500 text-sm">CPF: {{ logged_client.cpf }}</span>
+                            <span class="h-1 w-1 bg-gray-300 rounded-full"></span>
+                            <span class="text-sm text-blue-600 font-medium">Cliente desde {{ formatClientSince(logged_client.created_at) }}</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Botões de Ação -->
-                <div class="flex flex-wrap gap-3">
-                    <button (click)="generatePix()" *ngIf="active_payment_method_name === 'nubank'"
-                        class="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm shadow transition group">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
-                        </svg>
-                        Pagar com QR Code
-                    </button>
-                    <button (click)="payWithPicPay()" *ngIf="active_payment_method_name === 'picpay'"
-                        class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm shadow transition group">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                        </svg>
-                        Pagar com PicPay
-                    </button>
-                    <button (click)="sendProof()"
-                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm shadow transition group">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
-                        Enviar Comprovante
-                    </button>
-                    <button (click)="askForDeliver()" [disabled]="isDeliveryRequested"
-                        class="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm shadow transition group disabled:opacity-50 disabled:cursor-not-allowed">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                        </svg>
-                        {{ isDeliveryRequested ? 'Entrega solicitada' : 'Solicitar entrega' }}
-                    </button>
+                <!-- Payment Summary -->
+                <div class="flex flex-col gap-4 md:items-end w-full md:w-auto">
+                    <div class="bg-gray-50 p-4 rounded-xl w-full md:w-auto">
+                        <p class="text-sm text-gray-600 mb-1">Total em Aberto</p>
+                        <p class="text-2xl font-bold text-red-600">
+                            R$ {{ getTotalAmount(logged_client.purchases) | number: '1.2-2' }}
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">{{ getPendingItemsCount() }} itens pendentes</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Lista de Compras -->
+            <!-- Payment Options -->
+            <div class="mt-6 flex flex-wrap gap-3 justify-center md:justify-end">
+                <button (click)="generatePix()" *ngIf="active_payment_method_name === 'nubank'"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium shadow-sm transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                    Pagar com Pix
+                </button>
+                <button (click)="payWithPicPay()" *ngIf="active_payment_method_name === 'picpay'"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium shadow-sm transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                    Pagar com PicPay
+                </button>
+                <button (click)="sendProof()"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-sm transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    Enviar Comprovante
+                </button>
+            </div>
+
+            <!-- Tabs -->
             <div class="mt-8 border-t pt-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Histórico de Compras</h3>
-                <div class="space-y-6">
-                    <div *ngFor="let group of groupByPurchase(logged_client.purchases)" class="bg-gray-50 rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-sm font-medium text-gray-700">
-                                Compra em {{ group[0].created_at | date: 'short' }}
-                            </p>
-                            <span class="text-sm text-gray-500">
-                                {{ group.length }} item{{ group.length > 1 ? 's' : '' }}
+                <div class="flex space-x-1 border-b">
+                    <button [class]="activeTab === 'pending' ? 'border-b-2 border-blue-600 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'" 
+                            class="py-3 px-5 font-medium transition-colors flex items-center gap-2"
+                            (click)="setActiveTab('pending')">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Compras Pendentes
+                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded-full" *ngIf="getPendingItemsCount() > 0">
+                            {{ getPendingItemsCount() }}
+                        </span>
+                    </button>
+                    <button [class]="activeTab === 'completed' ? 'border-b-2 border-blue-600 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'"
+                            class="py-3 px-5 font-medium transition-colors flex items-center gap-2"
+                            (click)="setActiveTab('completed')">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Histórico de Compras
+                    </button>
+                </div>
+
+                <!-- Empty State -->
+                <div *ngIf="(activeTab === 'pending' && getPendingPurchases().length === 0) || 
+                           (activeTab === 'completed' && getCompletedPurchases().length === 0)" 
+                     class="flex flex-col items-center justify-center py-12">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path *ngIf="activeTab === 'pending'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            <path *ngIf="activeTab === 'completed'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">Nenhuma compra {{ activeTab === 'pending' ? 'pendente' : 'finalizada' }}</h3>
+                    <p class="text-gray-500 text-center mt-2">
+                        {{ activeTab === 'pending' ? 'Você não possui compras pendentes no momento.' : 'Seu histórico de compras finalizadas aparecerá aqui.' }}
+                    </p>
+                </div>
+
+                <!-- Pending Purchases -->
+                <div *ngIf="activeTab === 'pending'" class="space-y-6 mt-6">
+                    <div *ngFor="let dateGroup of getPendingPurchases()" class="mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <h3 class="text-lg font-semibold text-gray-800">
+                                    {{ dateGroup.date | date:'dd/MM/yyyy' }}
+                                    <span class="text-sm font-normal text-gray-500 ml-2">
+                                        ({{ dateGroup.items.length }} {{ dateGroup.items.length === 1 ? 'item' : 'itens' }})
+                                    </span>
+                                </h3>
+                            </div>
+                            
+                            <!-- Delivery Request Button for Group -->
+                            <button (click)="askForDeliverByGroup(dateGroup.items)" 
+                                    [disabled]="isGroupDeliveryRequested(dateGroup.items)"
+                                    class="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                </svg>
+                                {{ isGroupDeliveryRequested(dateGroup.items) ? 'Entrega solicitada' : 'Solicitar entrega' }}
+                            </button>
+                        </div>
+                        
+                        <!-- Individual Items -->
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 divide-y divide-gray-100">
+                            <div *ngFor="let item of dateGroup.items" class="p-4 hover:bg-gray-50 transition">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ item.clothing }}</h4>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Adicionado em {{ formatDateTime(item.created_at) }}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="font-medium text-gray-900">R$ {{ item.price }}</span>
+                                        <div class="h-6 w-6 rounded-full bg-yellow-100 flex items-center justify-center" 
+                                             title="Aguardando pagamento">
+                                            <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completed Purchases -->
+                <div *ngIf="activeTab === 'completed'" class="space-y-6 mt-6">
+                    <div *ngFor="let dateGroup of getCompletedPurchases()" class="mb-8">
+                        <!-- Date Header with Total -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <h3 class="text-lg font-semibold text-gray-800">
+                                    {{ dateGroup.date | date:'dd/MM/yyyy' }}
+                                    <span class="text-sm font-normal text-gray-500 ml-2">
+                                        ({{ dateGroup.items.length }} {{ dateGroup.items.length === 1 ? 'item' : 'itens' }})
+                                    </span>
+                                </h3>
+                            </div>
+                            <span class="font-medium text-gray-900 px-3 py-1 bg-gray-100 rounded-lg">
+                                Total: R$ {{ getGroupTotal(dateGroup.items) | number:'1.2-2' }}
                             </span>
                         </div>
-                        <ul class="space-y-2">
-                            <li *ngFor="let clothing of group" class="flex items-center justify-between py-2 px-3 bg-white rounded-lg">
-                                <span class="text-gray-700">{{ clothing.clothing }}</span>
-                                <span class="font-medium text-gray-900">R$ {{ clothing.price }}</span>
-                            </li>
-                        </ul>
+
+                        <!-- Tracking Code if exists -->
+                        <div *ngIf="getGroupTrackingCode(dateGroup.items)" class="mb-4 bg-green-50 p-4 rounded-lg flex justify-between items-center border border-green-100">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                </svg>
+                                <p class="text-green-800 font-medium">
+                                    Código de Rastreio: <span class="font-bold">{{ getGroupTrackingCode(dateGroup.items) }}</span>
+                                </p>
+                            </div>
+                            <!-- Add tracking link button if needed -->
+                            <a *ngIf="getGroupTrackingCode(dateGroup.items)"
+                               href="https://rastreamento.correios.com.br/app/index.php"
+                               target="_blank"
+                               class="flex items-center gap-1 text-sm text-green-700 hover:text-green-800 font-medium bg-white px-3 py-1.5 rounded-lg border border-green-200 shadow-sm hover:shadow transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                Rastrear Pedido
+                            </a>
+                        </div>
+
+                        <!-- Purchase Items -->
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-4 divide-y divide-gray-100">
+                            <div *ngFor="let item of dateGroup.items" class="p-4 hover:bg-gray-50 transition">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ item.clothing }}</h4>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Finalizado em {{ formatDateTime(item.updated_at || item.created_at) }}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="font-medium text-gray-900">R$ {{ item.price }}</span>
+                                        <div class="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center" 
+                                             title="Compra finalizada">
+                                            <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,10 +239,26 @@
             <!-- QR Code -->
             <div *ngIf="qr_code_value" class="mt-8 border-t pt-6">
                 <div class="flex flex-col items-center">
-                    <div class="bg-white p-4 rounded-xl shadow-sm">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4">QR Code para Pagamento</h3>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                         <qrcode [qrdata]="qr_code_value" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
                     </div>
-                    <p class="mt-3 text-xs text-gray-500 text-center break-all max-w-sm">
+                    <div class="mt-4 flex items-center gap-2">
+                        <button (click)="copyQrCodeValue()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                            </svg>
+                            Copiar código
+                        </button>
+                        <span class="text-gray-400">|</span>
+                        <button (click)="closeQrCode()" class="text-gray-600 hover:text-gray-800 text-sm font-medium flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Fechar
+                        </button>
+                    </div>
+                    <p class="mt-3 text-xs text-gray-500 text-center break-all max-w-sm px-4">
                         {{ qr_code_value }}
                     </p>
                 </div>
@@ -95,33 +268,85 @@
 </div>
 
 <!-- Modal Pix -->
-<div *ngIf="show_pix_modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-6 relative">
+<div *ngIf="show_pix_modal && logged_client" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-6 relative animate-fadeIn">
         <button (click)="closePixModal()"
-            class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl transition">&times;</button>
+            class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
 
-        <div class="space-y-4">
-            <h2 class="text-xl font-semibold text-gray-800">QR code gerado</h2>
-
-            <div class="bg-gray-50 rounded-xl p-4">
-                <p class="text-gray-700 mb-2">
-                    <span class="font-medium">Cliente:</span> {{ pix_modal_client?.client }}
-                </p>
-                <p class="text-gray-700">
-                    <span class="font-medium">Total:</span>
-                    <span class="text-red-600 font-bold">
-                        R$ {{ getTotalAmount(pix_modal_client?.purchases) | number: '1.2-2' }}
-                    </span>
-                </p>
+        <div class="space-y-5">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-3">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Pagamento via Pix</h2>
+                <p class="text-gray-500 text-sm mt-1">Escaneie o QR code ou copie o código abaixo</p>
             </div>
 
-            <div class="flex justify-center bg-white p-4 rounded-xl shadow-sm">
+            <div class="bg-gray-50 rounded-xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-gray-600 font-medium">Cliente</span>
+                    <span class="text-gray-800">{{ pix_modal_client?.client }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600 font-medium">Valor Total</span>
+                    <span class="text-red-600 font-bold text-lg">
+                        R$ {{ getTotalAmount(pix_modal_client?.purchases) | number: '1.2-2' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex justify-center bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                 <qrcode [qrdata]="qr_code_value" [width]="200" [errorCorrectionLevel]="'M'"></qrcode>
             </div>
 
-            <p class="text-xs text-gray-500 text-center break-all max-w-sm mx-auto">
-                {{ qr_code_value }}
-            </p>
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center">
+                    <span class="bg-white px-3 text-sm text-gray-500">ou copie o código</span>
+                </div>
+            </div>
+
+            <div class="relative">
+                <input type="text" readonly [value]="qr_code_value" class="w-full py-3 px-4 bg-gray-50 rounded-lg border border-gray-200 text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button (click)="copyQrCodeValue()" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-2M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-sm text-blue-800">
+                        Após o pagamento, nosso sistema atualizará seu pedido em até 1 hora.
+                    </p>
+                </div>
+            </div>
+
+            <button (click)="closePixModal()" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium shadow-sm transition">
+                Fechar
+            </button>
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.2s ease-out forwards;
+    }
+</style>

@@ -160,7 +160,7 @@ exports.getPendenciesByClient = async (req, res) => {
 
   try {
     const result = await db.query(
-      `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, c.cpf, c.name AS client,
+      `SELECT p.id AS purchase_id, p.created_at, p.is_paid, p.is_delivery_asked, p.tracking_code, c.cpf, c.name AS client,
               cl.name AS clothing, cl.price, pm.name AS payment_method
        FROM purchases p
        JOIN clients c ON p.client_id = c.id
