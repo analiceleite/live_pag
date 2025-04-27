@@ -27,19 +27,19 @@ jobs:
 
       - name: Build
         working-directory: frontend
-        run: npm run build 
+        run: ng build --base-href="/tag_track/" --configuration=production
 
       - name: Debug directory
         working-directory: frontend
         run: |
           echo "Listing dist directory:"
-          ls -la dist || echo "dist directory not found"
+          ls -la dist/frontend || echo "dist directory not found"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: frontend/dist
+          publish_dir: frontend/dist/frontend
           force_orphan: true
           
       - name: Show deployment URL
