@@ -1,34 +1,59 @@
--- Tabela de clientes com novos campos
-CREATE TABLE clientes (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(255) NOT NULL,
-  cpf VARCHAR(14),
-  instagram VARCHAR(100),
-  telefone VARCHAR(20),
-  cep VARCHAR(10),
-  endereco TEXT,
-  ponto_referencia TEXT
+-- Criação das tabelas
+
+CREATE TABLE clients (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    reference_point TEXT,
+    address TEXT,
+    zip_code VARCHAR,
+    phone VARCHAR,
+    instagram VARCHAR,
+    cpf VARCHAR UNIQUE,
+    name VARCHAR
 );
 
--- Tabela de peças
-CREATE TABLE pecas (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(255) NOT NULL,
-  preco NUMERIC(10, 2) NOT NULL
+CREATE TABLE payment_method (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    name VARCHAR,
+    active BOOLEAN DEFAULT TRUE
 );
 
--- Tabela de compras
-CREATE TABLE compras (
-  id SERIAL PRIMARY KEY,
-  cliente_id INTEGER,
-  data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+CREATE TABLE purchases (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    is_paid BOOLEAN DEFAULT FALSE,
+    is_delivery_asked BOOLEAN DEFAULT FALSE,
+    is_delivery_sent BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    tracking_code VARCHAR,
+    client_id BIGINT REFERENCES clients(id),
+    payment_method_id BIGINT REFERENCES payment_method(id)
 );
 
--- Relação entre compras e peças (muitos-para-muitos)
-CREATE TABLE compra_pecas (
-  compra_id INTEGER,
-  peca_id INTEGER,
-  FOREIGN KEY (compra_id) REFERENCES compras(id),
-  FOREIGN KEY (peca_id) REFERENCES pecas(id)
+CREATE TABLE clothings (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    name VARCHAR,
+    price NUMERIC,
+    queue_name VARCHAR,
+    purchase_channel VARCHAR,
+    purchase_type VARCHAR,
+    discount NUMERIC DEFAULT 0,
+    total_price NUMERIC
+);
+
+CREATE TABLE purchase_clothings (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    purchase_id BIGINT REFERENCES purchases(id) ON DELETE CASCADE,
+    clothing_id BIGINT REFERENCES clothings(id) ON DELETE CASCADE
+);
+
+CREATE TABLE mining (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    total_value NUMERIC,
+    quantity INT
 );
