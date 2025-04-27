@@ -16,6 +16,7 @@ import {
 } from '../../../../@services/models/purchase.interface';
 import { PurchaseService } from '../../../../@services/api/purchase/purchase.service';
 import { WhatsappService } from '../../../../@services/whatsapp/whatsapp.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
     selector: 'app-pendencies',
@@ -31,6 +32,7 @@ import { WhatsappService } from '../../../../@services/whatsapp/whatsapp.service
     templateUrl: './pendencies.component.html'
 })
 export class PendenciesComponent implements OnInit {
+    isLoading: boolean = true;
     clients: ClientPendencies[] = [];
     displayedColumns: string[] = ['name', 'purchases'];
     selected_tab: PurchaseTab = 'open';
@@ -39,6 +41,11 @@ export class PendenciesComponent implements OnInit {
     filter: string = '';
     selected_client_cpf: string | null = null;
 
+    showTrackingDialog: boolean = false;
+    trackingCode: string = '';
+    selectedGroupDate?: string;
+    selectedClientCpf?: string;
+
     constructor(
         private purchaseService: PurchaseService, 
         private router: Router,
@@ -46,70 +53,79 @@ export class PendenciesComponent implements OnInit {
     ) { }
 
     ngOnInit(): void {
-        this.loadData();
-    }
-
-    private loadData(): void {
         this.loadPendencies();
-        this.loadPaymentMethods();
     }
 
     private loadPendencies(): void {
-        this.purchaseService.loadPendencies().subscribe((clients: Client[]) => {
-            this.clients = clients.map(client => {
-                // Group purchases by date
-                const purchasesByDate = client.purchases.reduce((groups, purchase) => {
-                    const date = purchase.created_at?.split('T')[0] || 'No Date';
-                    if (!groups[date]) {
-                        groups[date] = [];
-                    }
-                    groups[date].push({
-                        ...purchase,
+        this.isLoading = true;
+        
+        // Usando forkJoin para esperar todas as requisições
+        const pendencies$ = this.purchaseService.loadPendencies();
+        const paymentMethods$ = this.purchaseService.loadPaymentMethods();
+        
+        forkJoin({
+            pendencies: pendencies$,
+            paymentMethods: paymentMethods$
+        }).subscribe({
+            next: ({ pendencies, paymentMethods }) => {
+                this.clients = pendencies.map(client => {
+                    const purchasesByDate = client.purchases.reduce((groups, purchase) => {
+                        const date = purchase.created_at?.split('T')[0] || 'No Date';
+                        if (!groups[date]) {
+                            groups[date] = [];
+                        }
+                        groups[date].push({
+                            ...purchase,
+                            showPaymentOptions: false,
+                            showDeleteOption: false,
+                            tracking_code: purchase.tracking_code || '',
+                        });
+                        return groups;
+                    }, {} as { [key: string]: PurchaseWithUI[] });
+
+                    const purchase_groups = Object.entries(purchasesByDate).map(([date, purchases]) => ({
+                        date,
+                        purchases,
+                        total_amount: purchases.reduce((total, p) => total + parseFloat(p.price || '0'), 0),
+                        is_paid: purchases.every(p => p.is_paid),
+                        is_delivery_sent: purchases.every(p => p.is_delivery_sent),
+                        is_deleted: purchases.every(p => p.is_deleted),
+                        is_delivery_asked: purchases.some(p => p.is_delivery_asked),
+                        delivery_requested: purchases.some(p => p.is_delivery_asked), 
+                        payment_method: purchases.find(p => p.payment_method)?.payment_method,
+                        tracking_code: purchases.find(p => p.tracking_code)?.tracking_code || '',
                         showPaymentOptions: false,
-                        showDeleteOption: false
-                    });
-                    return groups;
-                }, {} as { [key: string]: PurchaseWithUI[] });
+                        showDeleteOption: false,
+                        isExpanded: false 
+                    }));
 
-                const purchase_groups = Object.entries(purchasesByDate).map(([date, purchases]) => ({
-                    date,
-                    purchases,
-                    total_amount: purchases.reduce((total, p) => total + parseFloat(p.price || '0'), 0),
-                    is_paid: purchases.every(p => p.is_paid),
-                    is_delivery_sent: purchases.every(p => p.is_delivery_sent),
-                    is_deleted: purchases.every(p => p.is_deleted),
-                    is_delivery_asked: purchases.some(p => p.is_delivery_asked),
-                    delivery_requested: purchases.some(p => p.is_delivery_asked),  // Add this line
-                    payment_method: purchases.find(p => p.payment_method)?.payment_method,
-                    showPaymentOptions: false,
-                    showDeleteOption: false,
-                    isExpanded: false // Initialize expanded state
-                }));
+                    const clientPendencies: ClientPendencies = {
+                        client: client.client,
+                        cpf: client.cpf,
+                        phone: client.phone,
+                        total_amount: purchase_groups.reduce((total, group) => total + group.total_amount, 0),
+                        purchases: client.purchases.map(p => ({
+                            ...p,
+                            showPaymentOptions: false,
+                            showDeleteOption: false
+                        })),
+                        purchase_groups,
+                        delivery_requested: client.purchases.some(p => p.is_delivery_asked)
+                    };
 
-                const clientPendencies: ClientPendencies = {
-                    client: client.client,
-                    cpf: client.cpf,
-                    phone: client.phone,
-                    total_amount: purchase_groups.reduce((total, group) => total + group.total_amount, 0),
-                    purchases: client.purchases.map(p => ({
-                        ...p,
-                        showPaymentOptions: false,
-                        showDeleteOption: false
-                    })),
-                    purchase_groups,
-                    delivery_requested: client.purchases.some(p => p.is_delivery_asked)
-                };
+                    return clientPendencies;
+                });
 
-                return clientPendencies;
-            });
-        });
-    }
-
-    private loadPaymentMethods(): void {
-        this.purchaseService.loadPaymentMethods().subscribe(methods => {
-            this.paymentMethods = methods;
-            if (this.paymentMethods.length > 0) {
-                this.selectedPaymentMethodId = this.paymentMethods[0].id;
+                this.paymentMethods = paymentMethods;
+                if (this.paymentMethods.length > 0) {
+                    this.selectedPaymentMethodId = this.paymentMethods[0].id;
+                }
+            },
+            error: (error) => {
+                console.error('Erro ao carregar dados:', error);
+            },
+            complete: () => {
+                this.isLoading = false;
             }
         });
     }
@@ -130,7 +146,7 @@ export class PendenciesComponent implements OnInit {
     }
 
     markAsPaid(purchaseId: number, paymentMethodType: 'Nubank' | 'PicPay'): void {
-        const paymentMethodId = paymentMethodType === 'Nubank' ? 3 : 4;
+        const paymentMethodId = paymentMethodType === 'Nubank' ? 1 : 2;
 
         this.purchaseService.markAsPaid(purchaseId, paymentMethodId).subscribe(() => {
             const purchase = this.findPurchaseById(purchaseId);
@@ -223,15 +239,7 @@ export class PendenciesComponent implements OnInit {
         
         if (group) {
             const promises = group.purchases.map(purchase => 
-                new Promise<void>((resolve) => {
-                    this.purchaseService.markAsUndeleted(purchase.id || purchase.purchase_id).subscribe(() => {
-                        this.purchaseService.markAsNotSent(purchase.id || purchase.purchase_id).subscribe(() => {
-                            this.purchaseService.markAsUnpaid(purchase.id || purchase.purchase_id).subscribe(() => {
-                                resolve();
-                            });
-                        });
-                    });
-                })
+                this.purchaseService.returnToOpen(purchase.id || purchase.purchase_id).toPromise()
             );
 
             Promise.all(promises).then(() => {
@@ -239,6 +247,7 @@ export class PendenciesComponent implements OnInit {
                 group.is_delivery_sent = false;
                 group.is_deleted = false;
                 group.payment_method = '';
+                group.tracking_code = '';
                 this.selected_tab = 'open';
                 this.loadPendencies();
             });
@@ -342,8 +351,8 @@ export class PendenciesComponent implements OnInit {
         const group = client?.purchase_groups.find(g => g.date === date);
         
         if (group) {
-            group.showPaymentOptions = false; // Close payment options after selecting
-            const paymentMethodId = paymentMethodType === 'Nubank' ? 3 : 4;
+            group.showPaymentOptions = false; 
+            const paymentMethodId = paymentMethodType === 'Nubank' ? 1 : 2;
             const markPaidPromises = group.purchases.map(purchase =>
                 this.purchaseService.markAsPaid(purchase.id || purchase.purchase_id, paymentMethodId).toPromise()
             );
@@ -406,5 +415,53 @@ export class PendenciesComponent implements OnInit {
 
     hasGroupDeliveryRequested(group: PurchaseGroup): boolean {
         return group.purchases.some(p => p.is_delivery_asked);
+    }
+
+    openTrackingDialog(date: string, cpf: string) {
+        this.showTrackingDialog = true;
+        this.selectedGroupDate = date;
+        this.selectedClientCpf = cpf;
+        this.trackingCode = '';
+    }
+
+    cancelTracking() {
+        this.showTrackingDialog = false;
+        this.trackingCode = '';
+        this.selectedGroupDate = undefined;
+        this.selectedClientCpf = undefined;
+    }
+
+    confirmTracking() {
+        if (!this.selectedGroupDate || !this.selectedClientCpf) {
+            return;
+        }
+
+        const client = this.clients.find(c => c.cpf === this.selectedClientCpf);
+        if (client) {
+            const group = client.purchase_groups.find(g => g.date === this.selectedGroupDate);
+            if (group) {
+                const updatePromises = group.purchases.map(purchase =>
+                    this.purchaseService.updateTrackingCode(
+                        purchase.id || purchase.purchase_id, 
+                        this.trackingCode || null
+                    ).toPromise()
+                );
+
+                Promise.all(updatePromises).then(() => {
+                    this.markGroupAsSent(this.selectedGroupDate!, this.selectedClientCpf!);
+                    group.tracking_code = this.trackingCode || '';
+                    this.cancelTracking();
+                });
+            }
+        }
+    }
+
+    hasDeliverySent(client: any): boolean {
+        return client.purchase_groups.some((group: any) => group.is_delivery_sent);
+    }
+
+    getTrackingCode(client: any): string {
+        const group = client.purchase_groups.find((group: any) => group.is_delivery_sent);
+        return group ? group.tracking_code : '';
     }
 }

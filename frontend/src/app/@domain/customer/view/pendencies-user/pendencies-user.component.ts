@@ -25,6 +25,9 @@ export class PendenciesUserComponent implements OnInit {
 
   pix_modal_client: any = null; 
   show_pix_modal = false;  
+  activeTab: 'pending' | 'completed' = 'pending';
+  isLoading = true;
+  error: string | null = null;
 
   constructor(
     private pixService: PixApi,
@@ -36,27 +39,73 @@ export class PendenciesUserComponent implements OnInit {
     const clientId = Number(localStorage.getItem('clientId'));
 
     if (!clientId) {
-      console.error('Invalid client_id');
+      this.error = 'ID do cliente não encontrado';
+      this.isLoading = false;
       return;
     }
 
+    this.loadClientData(clientId);
+  }
+
+  private loadClientData(clientId: number) {
+    this.isLoading = true;
+    this.error = null;
+
     this.paymentService.getActive().subscribe({
-      next: (method) => this.active_payment_method_name = method.name,
-      error: () => this.active_payment_method_name = null,
-    });
-
-    this.purchaseService.getPendenciesByClient(clientId).subscribe((res: any[]) => {
-      if (res.length > 0) {
-        this.logged_client = {
-          client: res[0].client,
-          cpf: res[0].cpf,
-          purchases: res,
-        };
-        console.log("Client purchases: ", this.logged_client, res);
-
-        this.isDeliveryRequested = res.some(purchase => purchase.is_delivery_asked);
+      next: (method) => {
+        console.log('Active payment method:', method);
+        this.active_payment_method_name = method?.name || null;
+      },
+      error: (err) => {
+        console.error('Error loading payment method:', err);
+        this.active_payment_method_name = null;
+      },
+      complete: () => {
+        this.purchaseService.getPendenciesByClient(clientId).subscribe({
+          next: (res: any[]) => {
+            if (res && res.length > 0) {
+              this.logged_client = {
+                client: res[0].client,
+                cpf: res[0].cpf,
+                created_at: res[0].created_at,
+                purchases: res,
+              };
+              this.isDeliveryRequested = res.some(purchase => purchase.is_delivery_asked);
+            } else {
+              this.error = 'Nenhuma compra encontrada';
+            }
+            this.isLoading = false;
+          },
+          error: (err) => {
+            this.error = err.status === 403 
+              ? 'Acesso não autorizado. Por favor, faça login novamente.' 
+              : 'Erro ao carregar dados do cliente';
+            this.isLoading = false;
+            if (err.status === 403) {
+              localStorage.clear();
+            }
+          }
+        });
       }
     });
+  }
+
+  setActiveTab(tab: 'pending' | 'completed') {
+    this.activeTab = tab;
+  }
+
+  getPendingPurchases() {
+    if (!this.logged_client?.purchases) return [];
+    return this.groupByPurchaseDate(
+      this.logged_client.purchases.filter((p: any) => !p.is_paid)
+    );
+  }
+
+  getCompletedPurchases() {
+    if (!this.logged_client?.purchases) return [];
+    return this.groupByPurchaseDate(
+      this.logged_client.purchases.filter((p: any) => p.is_paid)
+    );
   }
 
   getTotalAmount(purchases: any[]) {
@@ -65,15 +114,32 @@ export class PendenciesUserComponent implements OnInit {
       .reduce((total, p) => total + Number(p.price), 0);
   }
 
-  groupByPurchase(purchases: any[]) {
-    const grouped: { [purchase_id: string]: any[] } = {};
+  groupByPurchaseDate(purchases: any[]) {
+    const grouped: { [date: string]: any[] } = {};
     for (const item of purchases) {
-      if (!grouped[item.compra_id]) {
-        grouped[item.compra_id] = [];
+      const date = new Date(item.created_at).toISOString().split('T')[0];
+      if (!grouped[date]) {
+        grouped[date] = [];
       }
-      grouped[item.compra_id].push(item);
+      grouped[date].push(item);
     }
-    return Object.values(grouped).filter(group => !group[0].is_paid);
+    // Sort dates in descending order
+    return Object.entries(grouped)
+      .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
+      .map(([date, items]) => ({
+        date: new Date(date),
+        items: items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      }));
+  }
+
+  formatDateTime(date: string) {
+    return new Date(date).toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   generatePix() {
@@ -97,12 +163,20 @@ export class PendenciesUserComponent implements OnInit {
     window.open(picpayLink, '_blank'); 
   }
 
-  askForDeliver() {
-    const purchaseId = this.logged_client.purchases[0].purchase_id; 
+  askForDeliver(purchaseId: number) {
+    if (!purchaseId) {
+      console.error('ID da compra não encontrado');
+      return;
+    }
+
     this.purchaseService.requestDelivery(purchaseId).subscribe({
       next: (res) => {
-        console.log('Entrega solicitada com sucesso:', res);
-        this.isDeliveryRequested = true;
+        if (this.logged_client?.purchases) {
+          const purchase = this.logged_client.purchases.find((p: any) => p.purchase_id === purchaseId);
+          if (purchase) {
+            purchase.is_delivery_asked = true;
+          }
+        }
       },
       error: (err) => {
         console.error('Erro ao solicitar entrega:', err);
@@ -110,9 +184,19 @@ export class PendenciesUserComponent implements OnInit {
     });
   }
 
+  isPurchaseDeliveryRequested(purchaseId: number): boolean {
+    return this.logged_client?.purchases?.some(
+      (p: any) => p.purchase_id === purchaseId && p.is_delivery_asked
+    ) || false;
+  }
+
   sendProof() {
-    const client = this.logged_client;
-    const message = `Olá! Sou ${client.client} e estou enviando o comprovante de pagamento das minhas compras em aberto.`;
+    if (!this.logged_client?.client) {
+      console.error('Dados do cliente não disponíveis');
+      return;
+    }
+
+    const message = `Olá! Sou ${this.logged_client.client} e estou enviando o comprovante de pagamento das minhas compras em aberto.`;
     const link = `https://wa.me/+5547984957878?text=${encodeURIComponent(message)}`;
     window.open(link, '_blank');
   }  
@@ -121,5 +205,67 @@ export class PendenciesUserComponent implements OnInit {
     this.show_pix_modal = false;
     this.qr_code_value = '';
     this.pix_modal_client = null;
+  }
+
+  getGroupTotal(items: any[]): number {
+    return items.reduce((total, item) => total + Number(item.price), 0);
+  }
+
+  getGroupTrackingCode(items: any[]): string | null {
+    // All items in a group should have the same tracking code
+    return items[0]?.tracking_code || null;
+  }
+
+  askForDeliverByGroup(items: any[]) {
+    if (!items?.length) return;
+    
+    // Get all purchase IDs from the same date
+    const purchaseIds = items.map(item => item.purchase_id);
+    
+    this.purchaseService.requestDelivery(purchaseIds[0]).subscribe({
+      next: (res) => {
+        if (this.logged_client?.purchases) {
+          purchaseIds.forEach(id => {
+            const purchase = this.logged_client.purchases.find((p: any) => p.purchase_id === id);
+            if (purchase) {
+              purchase.is_delivery_asked = true;
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao solicitar entrega:', err);
+      }
+    });
+  }
+
+  isGroupDeliveryRequested(items: any[]): boolean {
+    return items?.some((item: any) => item.is_delivery_asked) || false;
+  }
+
+  formatClientSince(date: string): string {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('pt-BR', {
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
+  getPendingItemsCount(): number {
+    if (!this.logged_client?.purchases) return 0;
+    return this.logged_client.purchases.filter((p: any) => !p.is_paid).length;
+  }
+
+  copyQrCodeValue() {
+    if (this.qr_code_value) {
+      navigator.clipboard.writeText(this.qr_code_value).then(() => {
+        // You might want to add a toast notification here
+        console.log('Código copiado com sucesso!');
+      });
+    }
+  }
+
+  closeQrCode() {
+    this.qr_code_value = '';
   }
 }

@@ -104,4 +104,8 @@ export class MiningListComponent implements OnInit {
   cancelDelete(): void {
     this.showDeleteModal = false; 
   }
+
+  gotToNewMining(): void {
+    this.router.navigate(['/cadastro-garimpo']);
+  }
 }

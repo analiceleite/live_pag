@@ -1,10 +1,9 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { ApiConfig } from '../api.config';
 
 @Injectable({ providedIn: 'root' })
 export class ClothingApi {
-  private baseUrl = 'http://localhost:3000';
-
   constructor(private http: HttpClient) { }
 
   private headers() {
@@ -13,7 +12,7 @@ export class ClothingApi {
   }
 
   getAll() {
-    return this.http.get(`${this.baseUrl}/clothings`, { headers: this.headers() });
+    return this.http.get(ApiConfig.CLOTHING.LIST, { headers: this.headers() });
   }
 
   add(data: {
@@ -24,16 +23,16 @@ export class ClothingApi {
     purchase_type: string;
     discount: number;
   }) {
-    return this.http.post(`${this.baseUrl}/clothings`, data, {
+    return this.http.post(ApiConfig.CLOTHING.CREATE, data, {
       headers: this.headers()
     });
   }
 
   update(piece: any) {
-    return this.http.put(`${this.baseUrl}/clothings/${piece.id}`, piece, { headers: this.headers() });
+    return this.http.put(ApiConfig.CLOTHING.UPDATE(piece.id), piece, { headers: this.headers() });
   }
   
   delete(id: number) {
-    return this.http.delete(`${this.baseUrl}/clothings/${id}`, { headers: this.headers() });
+    return this.http.delete(ApiConfig.CLOTHING.DELETE(id), { headers: this.headers() });
   }
 }

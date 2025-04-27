@@ -3,10 +3,10 @@ const auth = require('../middlewares/auth.middleware');
 
 const router = require('express').Router();
 
-router.post('/mining', auth('admin'), controller.createMining);
-router.get('/mining', auth('admin'), controller.getAllMinings);
-router.put('/mining/:id', auth('admin'), controller.editMining);
-router.delete('/mining/:id', auth('admin'), controller.deleteMining);
+router.post('/create', auth('admin'), controller.createMining);
+router.get('/get-all', auth('admin'), controller.getAllMinings);
+router.put('/edit/:id', auth('admin'), controller.editMining);
+router.delete('/delete/:id', auth('admin'), controller.deleteMining);
 
 module.exports = router;
 

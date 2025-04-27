@@ -1,7 +1,11 @@
-const db = require('../database');
+require('../../config/database');
 
 exports.generatePix = async (req, res) => {
     const { valor } = req.body;
+
+    if (!valor || isNaN(valor) || valor <= 0) {
+        return res.status(400).json({ error: 'Invalid amount value' });
+    }
 
     try {
         const chavePix = '+5547997616421';
@@ -55,10 +59,16 @@ exports.generatePix = async (req, res) => {
         const crc = crc16(payloadComCRCBase);
         const payloadFinal = payloadComCRCBase + crc;
 
-        return res.json({ payload: payloadFinal });
+        return res.json({ 
+            payload: payloadFinal,
+            message: 'PIX code generated successfully'
+        });
     } catch (err) {
-        console.error('Erro ao gerar Pix manual:', err);
-        return res.status(500).json({ error: 'Erro ao gerar Pix manual' });
+        console.error('Error generating manual PIX:', err);
+        return res.status(500).json({ 
+            error: 'Error generating manual PIX', 
+            details: err.message 
+        });
     }
 };
 

@@ -1,11 +1,12 @@
-const db = require('../database');
+const { sql } = require('../../config/database');
 
 exports.getAllClients = async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM clients ORDER BY id DESC");
-    res.status(200).json(result.rows);
+    const result = await sql`SELECT * FROM clients ORDER BY id DESC`;
+    res.status(200).json(result);
   } catch (err) {
-    res.status(500).json({ error: "Error fetching clients", details: err });
+    console.error('Error fetching clients:', err);
+    res.status(500).json({ error: "Error fetching clients", details: err.message });
   }
 };
 
@@ -21,16 +22,18 @@ exports.createClient = async (req, res) => {
   } = req.body;
 
   try {
-    const result = await db.query(
-      `INSERT INTO clients (name, cpf, instagram, phone, zip_code, address, reference_point)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id`,
-      [name, cpf, instagram, phone, zip_code, address, reference_point]
-    );
-
-    res.status(201).json({ id: result.rows[0].id });
+    const result = await sql`
+      INSERT INTO clients (
+        name, cpf, instagram, phone, zip_code, address, reference_point
+      ) VALUES (
+        ${name}, ${cpf}, ${instagram}, ${phone}, ${zip_code}, ${address}, ${reference_point}
+      )
+      RETURNING *
+    `;
+    res.status(201).json(result[0]);
   } catch (err) {
-    res.status(500).json(err);
+    console.error('Error creating client:', err);
+    res.status(500).json({ error: "Error creating client", details: err.message });
   }
 };
 
@@ -47,22 +50,22 @@ exports.editClient = async (req, res) => {
   } = req.body;
 
   try {
-    await db.query(
-      `UPDATE clients SET
-        name = $1,
-        cpf = $2,
-        instagram = $3,
-        phone = $4,
-        zip_code = $5,
-        address = $6,
-        reference_point = $7
-       WHERE id = $8`,
-      [name, cpf, instagram, phone, zip_code, address, reference_point, id]
-    );
+    await sql`
+      UPDATE clients SET
+        name = ${name},
+        cpf = ${cpf},
+        instagram = ${instagram},
+        phone = ${phone},
+        zip_code = ${zip_code},
+        address = ${address},
+        reference_point = ${reference_point}
+       WHERE id = ${id}
+    `;
 
     res.status(200).json({ message: "Client updated successfully!" });
   } catch (err) {
-    res.status(500).json({ error: "Error updating client", details: err });
+    console.error('Error updating client:', err);
+    res.status(500).json({ error: "Error updating client", details: err.message });
   }
 };
 
@@ -70,9 +73,16 @@ exports.deleteClient = async (req, res) => {
   const { id } = req.params;
 
   try {
-    await db.query("DELETE FROM clients WHERE id = $1", [id]);
+    const checkClient = await sql`SELECT id FROM clients WHERE id = ${id}`;
+    
+    if (checkClient.length === 0) {
+      return res.status(404).json({ error: "Client not found" });
+    }
+
+    await sql`DELETE FROM clients WHERE id = ${id}`;
     res.status(200).json({ message: "Client deleted successfully!" });
   } catch (err) {
-    res.status(500).json({ error: "Error deleting client", details: err });
+    console.error('Error deleting client:', err);
+    res.status(500).json({ error: "Error deleting client", details: err.message });
   }
 };
