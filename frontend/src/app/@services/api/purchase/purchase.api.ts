@@ -25,7 +25,7 @@ export class PurchaseApi {
   }
 
   markAsPaid(purchaseId: number, paymentMethodId: number): Observable<any> {
-    return this.http.put(ApiConfig.PURCHASE.MARK_AS_PAID(purchaseId), 
+    return this.http.patch(ApiConfig.PURCHASE.MARK_AS_PAID(purchaseId), 
       { payment_method_id: paymentMethodId },
       { headers: this.getHeaders() }
     );
@@ -36,15 +36,15 @@ export class PurchaseApi {
   }
 
   markAsSent(purchaseId: number): Observable<any> {
-    return this.http.put(ApiConfig.PURCHASE.MARK_AS_SENT(purchaseId), {}, { headers: this.getHeaders() });
+    return this.http.patch(ApiConfig.PURCHASE.MARK_AS_SENT(purchaseId), {}, { headers: this.getHeaders() });
   }
 
   markAsNotSent(purchaseId: number): Observable<any> {
-    return this.http.put(ApiConfig.PURCHASE.MARK_AS_NOT_SENT(purchaseId), {}, { headers: this.getHeaders() });
+    return this.http.patch(ApiConfig.PURCHASE.MARK_AS_NOT_SENT(purchaseId), {}, { headers: this.getHeaders() });
   }
 
   requestDelivery(purchaseId: number): Observable<any> {
-    return this.http.put(ApiConfig.PURCHASE.REQUEST_DELIVERY(purchaseId), {}, { headers: this.getHeaders() });
+    return this.http.patch(ApiConfig.PURCHASE.REQUEST_DELIVERY(purchaseId), {}, { headers: this.getHeaders() });
   }
 
   getDeliveriesRequested(): Observable<Purchase[]> {
@@ -59,7 +59,7 @@ export class PurchaseApi {
   }
 
   markAsDeleted(purchaseId: number): Observable<any> {
-    return this.http.put(ApiConfig.PURCHASE.MARK_AS_DELETED(purchaseId), {}, { headers: this.getHeaders() });
+    return this.http.patch(ApiConfig.PURCHASE.MARK_AS_DELETED(purchaseId), {}, { headers: this.getHeaders() });
   }
 
   markAsUndeleted(purchaseId: number): Observable<any> {

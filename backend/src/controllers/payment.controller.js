@@ -1,26 +1,33 @@
-const db = require('../database');
+const { sql } = require('../../config/database');
 const Excel = require('exceljs');
 
 exports.getAllPaymentMethods = async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM payment_method ORDER BY name');
-        return res.status(200).json(result.rows);
+        const result = await sql`
+            SELECT * FROM payment_method 
+            ORDER BY name
+        `;
+        return res.status(200).json(result);
     } catch (error) {
-        console.error('Erro ao recuperar os métodos de pagamento:', error);
-        return res.status(500).json({ message: 'Erro ao recuperar os métodos de pagamento.' });
+        console.error('Error fetching payment methods:', error);
+        return res.status(500).json({ error: 'Error fetching payment methods', details: error.message });
     }
 };
 
 exports.getActivePaymentMethod = async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM payment_method WHERE active = true LIMIT 1');
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Nenhum método de pagamento ativo encontrado.' });
+        const result = await sql`
+            SELECT * FROM payment_method 
+            WHERE active = true 
+            LIMIT 1
+        `;
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'No active payment method found' });
         }
-        return res.status(200).json(result.rows[0]);
+        return res.status(200).json(result[0]);
     } catch (error) {
-        console.error('Erro ao recuperar o método de pagamento ativo:', error);
-        return res.status(500).json({ message: 'Erro ao recuperar o método de pagamento ativo.' });
+        console.error('Error fetching active payment method:', error);
+        return res.status(500).json({ error: 'Error fetching active payment method', details: error.message });
     }
 };
 
@@ -28,91 +35,92 @@ exports.setActivePaymentMethod = async (req, res) => {
     const { name } = req.body;
 
     try {
-        await db.query('UPDATE payment_method SET active = false');
+        await sql`UPDATE payment_method SET active = false`;
         
-        const result = await db.query(
-            'UPDATE payment_method SET active = true WHERE name = $1 RETURNING *',
-            [name]
-        );
+        const result = await sql`
+            UPDATE payment_method 
+            SET active = true 
+            WHERE name = ${name} 
+            RETURNING *
+        `;
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Método de pagamento não encontrado.' });
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'Payment method not found' });
         }
 
-        return res.status(200).json(result.rows[0]);
+        return res.status(200).json(result[0]);
     } catch (error) {
-        console.error('Erro ao ativar o método de pagamento:', error);
-        return res.status(500).json({ message: 'Erro ao ativar o método de pagamento.' });
+        console.error('Error setting active payment method:', error);
+        return res.status(500).json({ error: 'Error setting active payment method', details: error.message });
     }
 };
 
 exports.getMonthlyData = async (req, res) => {
     const { month, year } = req.query;
+    const monthNumber = getMonthNumber(month);
 
     try {
-        const result = await db.query(
-            `SELECT 
+        const result = await sql`
+            SELECT 
                 SUM(CASE WHEN pm.name = 'picpay' THEN cl.price ELSE 0 END) as picpay_amount,
                 SUM(CASE WHEN pm.name = 'nubank' THEN cl.price ELSE 0 END) as nubank_amount,
                 SUM(CASE WHEN p.is_paid = true THEN cl.price ELSE 0 END) as total_amount,
                 (SELECT COALESCE(SUM(total_value), 0) FROM mining 
-                 WHERE EXTRACT(MONTH FROM created_at) = $1 
-                 AND EXTRACT(YEAR FROM created_at) = $2) as investment_amount
+                 WHERE EXTRACT(MONTH FROM created_at) = ${monthNumber}
+                 AND EXTRACT(YEAR FROM created_at) = ${year}) as investment_amount
             FROM purchases p
             JOIN payment_method pm ON p.payment_method_id = pm.id
             JOIN purchase_clothings pc ON p.id = pc.purchase_id
             JOIN clothings cl ON pc.clothing_id = cl.id
-            WHERE EXTRACT(MONTH FROM p.created_at) = $1 
-            AND EXTRACT(YEAR FROM p.created_at) = $2
+            WHERE EXTRACT(MONTH FROM p.created_at) = ${monthNumber}
+            AND EXTRACT(YEAR FROM p.created_at) = ${year}
             AND p.is_paid = true
-            AND p.is_deleted = false`,
-            [getMonthNumber(month), year]
-        );
+            AND p.is_deleted = false
+        `;
 
         const monthlyData = {
-            picpayAmount: parseFloat(result.rows[0].picpay_amount) || 0,
-            nubankAmount: parseFloat(result.rows[0].nubank_amount) || 0,
-            totalAmount: parseFloat(result.rows[0].total_amount) || 0,
-            investmentAmount: parseFloat(result.rows[0].investment_amount) || 0
+            picpayAmount: parseFloat(result[0].picpay_amount) || 0,
+            nubankAmount: parseFloat(result[0].nubank_amount) || 0,
+            totalAmount: parseFloat(result[0].total_amount) || 0,
+            investmentAmount: parseFloat(result[0].investment_amount) || 0
         };
 
         return res.status(200).json(monthlyData);
     } catch (error) {
-        console.error('Erro ao recuperar dados mensais:', error);
-        return res.status(500).json({ message: 'Erro ao recuperar dados mensais.' });
+        console.error('Error fetching monthly data:', error);
+        return res.status(500).json({ error: 'Error fetching monthly data', details: error.message });
     }
 };
 
 exports.exportMonthlyData = async (req, res) => {
     const { month, year } = req.query;
-    const currentDate = new Date().toLocaleDateString('pt-BR');
+    const monthNumber = getMonthNumber(month);
 
     try {
-        const result = await db.query(
-            `SELECT 
+        const result = await sql`
+            SELECT 
                 SUM(CASE WHEN pm.name = 'picpay' THEN cl.price ELSE 0 END) as picpay_amount,
                 SUM(CASE WHEN pm.name = 'nubank' THEN cl.price ELSE 0 END) as nubank_amount,
                 SUM(CASE WHEN p.is_paid = true THEN cl.price ELSE 0 END) as total_amount,
                 (SELECT COALESCE(SUM(total_value), 0) FROM mining 
-                 WHERE EXTRACT(MONTH FROM created_at) = $1 
-                 AND EXTRACT(YEAR FROM created_at) = $2) as investment_amount
+                 WHERE EXTRACT(MONTH FROM created_at) = ${monthNumber}
+                 AND EXTRACT(YEAR FROM created_at) = ${year}) as investment_amount
             FROM purchases p
             JOIN payment_method pm ON p.payment_method_id = pm.id
             JOIN purchase_clothings pc ON p.id = pc.purchase_id
             JOIN clothings cl ON pc.clothing_id = cl.id
-            WHERE EXTRACT(MONTH FROM p.created_at) = $1 
-            AND EXTRACT(YEAR FROM p.created_at) = $2
+            WHERE EXTRACT(MONTH FROM p.created_at) = ${monthNumber}
+            AND EXTRACT(YEAR FROM p.created_at) = ${year}
             AND p.is_paid = true
-            AND p.is_deleted = false`,
-            [getMonthNumber(month), year]
-        );
+            AND p.is_deleted = false
+        `;
 
         // Extrair os dados do resumo mensal
         const monthlyData = {
-            picpayAmount: parseFloat(result.rows[0].picpay_amount) || 0,
-            nubankAmount: parseFloat(result.rows[0].nubank_amount) || 0,
-            totalAmount: parseFloat(result.rows[0].total_amount) || 0,
-            investmentAmount: parseFloat(result.rows[0].investment_amount) || 0
+            picpayAmount: parseFloat(result[0].picpay_amount) || 0,
+            nubankAmount: parseFloat(result[0].nubank_amount) || 0,
+            totalAmount: parseFloat(result[0].total_amount) || 0,
+            investmentAmount: parseFloat(result[0].investment_amount) || 0
         };
 
         // Criar um novo workbook
@@ -287,8 +295,8 @@ exports.exportMonthlyData = async (req, res) => {
         // Finalizar a resposta
         res.end();
     } catch (error) {
-        console.error('Erro ao exportar resumo mensal para Excel:', error);
-        return res.status(500).json({ message: 'Erro ao exportar resumo mensal para Excel.' });
+        console.error('Error exporting monthly data to Excel:', error);
+        return res.status(500).json({ error: 'Error exporting monthly data to Excel', details: error.message });
     }
 };
 

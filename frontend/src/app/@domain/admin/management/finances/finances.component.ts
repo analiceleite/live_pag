@@ -7,6 +7,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { PaymentApi, PaymentMethod, MonthlyData } from '../../../../@services/api/shared/payment.api';
 import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-finances',
@@ -23,6 +24,8 @@ import { RouterModule } from '@angular/router';
   templateUrl: './finances.component.html'
 })
 export class FinancesComponent implements OnInit {
+  isLoading: boolean = true;
+
   // Controle de período
   selectedMonth: string = 'Abril';
   selectedYear: number = 2025;
@@ -47,16 +50,32 @@ export class FinancesComponent implements OnInit {
   constructor(private paymentService: PaymentApi) {}
 
   ngOnInit(): void {
-    this.loadPaymentMethods();
-    this.loadMonthlyData();
+    this.loadInitialData();
   }
 
-  loadPaymentMethods(): void {
-    this.paymentService.getAll().subscribe({
-      next: (methods) => {
-        this.paymentMethods = methods;
+  private loadInitialData(): void {
+    this.isLoading = true;
+    
+    const paymentMethods$ = this.paymentService.getAll();
+    const activePaymentMethod$ = this.paymentService.getActive();
+    
+    forkJoin({
+      paymentMethods: paymentMethods$,
+      activeMethod: activePaymentMethod$
+    }).subscribe({
+      next: ({ paymentMethods, activeMethod }) => {
+        this.paymentMethods = paymentMethods;
+        this.activePaymentMethod = activeMethod;
+        this.selectedPaymentMethod = activeMethod?.name?.toLowerCase() || '';
+        this.selectedPaymentMethodId = activeMethod?.id;
+        this.loadMonthlyData();
       },
-      error: (error) => console.error('Erro:', error)
+      error: (error) => {
+        console.error('Erro ao carregar dados:', error);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
     });
   }
 
@@ -71,7 +90,9 @@ export class FinancesComponent implements OnInit {
     this.loadMonthlyData();
   }
 
+  // Modificar o loadMonthlyData para manter o loading
   loadMonthlyData(): void {
+    this.isLoading = true;
     const period = {
       month: this.selectedMonth,
       year: this.selectedYear
@@ -91,6 +112,9 @@ export class FinancesComponent implements OnInit {
         this.nubankAmount = 0;
         this.investmentAmount = 0;
         this.monthlyTotal = 0;
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     });
   }
@@ -109,18 +133,6 @@ export class FinancesComponent implements OnInit {
         link.download = `financeiro-${this.selectedMonth}-${this.selectedYear}.xlsx`;
         link.click();
         window.URL.revokeObjectURL(url);
-      },
-      error: (error) => console.error('Erro:', error)
-    });
-  }
-
-  loadActivePaymentMethod(): void {
-    this.paymentService.getActive().subscribe({
-      next: (method) => {
-        this.activePaymentMethod = method;
-        this.selectedPaymentMethod = method?.name?.toLowerCase() || '';
-        this.selectedPaymentMethodId = method.id;
-        this.loadMonthlyData();
       },
       error: (error) => console.error('Erro:', error)
     });

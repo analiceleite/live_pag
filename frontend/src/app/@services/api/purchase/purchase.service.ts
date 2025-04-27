@@ -82,7 +82,9 @@ export class PurchaseService {
     }
 
     returnToOpen(purchaseId: number): Observable<void> {
-        return this.purchaseApi.markAsNotSent(purchaseId).pipe(
+        return this.purchaseApi.markAsUndeleted(purchaseId).pipe(
+            switchMap(() => this.purchaseApi.updateTracking(purchaseId, null)),
+            switchMap(() => this.purchaseApi.markAsNotSent(purchaseId)),
             switchMap(() => this.purchaseApi.markAsUnpaid(purchaseId)),
             tap(() => {
                 this.showMessage('Compra retornada para aberta com sucesso!');

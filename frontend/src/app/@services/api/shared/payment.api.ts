@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiConfig } from '../api.config';
 import { PaymentMethod } from '../../models/purchase.interface';
-import { environment } from '../../../../environments/environment';
 
 export interface LocalPaymentMethod {
   id: number;
@@ -28,28 +27,26 @@ export interface Period {
 
 @Injectable({ providedIn: 'root' })
 export class PaymentApi {
-  private apiUrl = `${environment.apiUrl}`;
-
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<LocalPaymentMethod[]> {
-    return this.http.get<LocalPaymentMethod[]>(`${this.apiUrl}/methods`);
+    return this.http.get<LocalPaymentMethod[]>(ApiConfig.PAYMENT.GET_ALL);
   }
 
   getActive(): Observable<LocalPaymentMethod> {
-    return this.http.get<LocalPaymentMethod>(`${this.apiUrl}/methods/active`);
+    return this.http.get<LocalPaymentMethod>(ApiConfig.PAYMENT.GET_ACTIVE);
   }
 
   setActive(name: string): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/methods/active`, { name });
+    return this.http.put<void>(ApiConfig.PAYMENT.SET_ACTIVE, { name });
   }
 
   getMonthlyData(period: Period): Observable<MonthlyData> {
-    return this.http.get<MonthlyData>(`${this.apiUrl}/monthly`, { params: { ...period } });
+    return this.http.get<MonthlyData>(ApiConfig.PAYMENT.MONTHLY_DATA, { params: { ...period } });
   }
 
   exportMonthlyData(period: Period): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/export`, {
+    return this.http.get(ApiConfig.PAYMENT.EXPORT, {
       params: { ...period },
       responseType: 'blob'
     });
