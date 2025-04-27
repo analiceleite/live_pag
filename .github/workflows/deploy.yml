@@ -23,11 +23,13 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: npm install
+        run: |
+          npm install -g @angular/cli
+          npm install
 
       - name: Build
         working-directory: frontend
-        run: ng build --base-href="/tag_track/" --configuration=production
+        run: npm run build -- --base-href="/tag_track/" --configuration=production
 
       - name: Debug directory
         working-directory: frontend
