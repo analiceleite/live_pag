@@ -31,3 +31,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/dist
           force_orphan: true
+      - name: Show deployment URL
+        run: |
+          echo "🚀 Your site should be live at:"
+          echo "https://$(git config --get remote.origin.url | cut -d'/' -f4).github.io/$(git config --get remote.origin.url | cut -d'/' -f5 | cut -d'.' -f1)/"
