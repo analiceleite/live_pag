@@ -8,7 +8,7 @@
     "prod": "ng build --configuration production",
     "serve-prod": "npm run prod && npx http-server dist/frontend -p 4200",
     "watch": "ng build --watch --configuration development",
-    "deploy": "ng build --base-href=/live_pag/ --delete-output-path --output-path docs"
+    "deploy": "ng build --configuration production --base-href=/tag_track/"
   },
   "private": true,
   "dependencies": {
