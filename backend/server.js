@@ -39,20 +39,8 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message });
 });
 
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-const startServer = async () => {
-  try {
-    await sql`SELECT 1`;
-    console.log('✅ Database connected successfully');
-    
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-
-  } catch (error) {
-    console.error('Database connection error:', error.message);
-  }
-};
-
-startServer();
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on port ${port}`);
+});
