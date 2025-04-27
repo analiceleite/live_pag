@@ -6,6 +6,7 @@ import { BackToMenuComponent } from '../../../../@common/components/back-to-menu
 
 @Component({
   imports: [CommonModule, FormsModule, BackToMenuComponent],
+  standalone: true,
   selector: 'app-mining-registration',
   templateUrl: './mining-registration.component.html',
 })

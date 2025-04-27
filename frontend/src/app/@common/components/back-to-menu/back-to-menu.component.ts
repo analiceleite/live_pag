@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-back-to-menu',
+  standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './back-to-menu.component.html'
 })
