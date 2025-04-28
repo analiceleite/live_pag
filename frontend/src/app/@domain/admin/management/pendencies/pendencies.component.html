@@ -1,0 +1,451 @@
+<app-loading *ngIf="isLoading" message="Carregando pendências..."></app-loading>
+
+<!-- Main Content -->
+<div [class.invisible]="isLoading" class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-blue-50 px-4 py-8">
+    <!-- Header and Back Button -->
+    <div class="max-w-7xl mx-auto">
+        <!-- Header e Navegação -->
+        <div class="flex items-center justify-between mb-6">
+            <app-back-to-menu></app-back-to-menu>
+        </div>
+
+        <!-- Page Header com contadores -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800">Pendências</h2>
+            <p class="text-gray-600 mt-2">Gerencie as pendências de pagamento</p>
+
+            <!-- Counters -->
+            <div class="flex justify-center mt-4 gap-4 flex-wrap">
+                <div class="bg-white rounded-lg px-3 py-1 shadow-sm border border-gray-100 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                    <span class="text-sm font-medium">{{ getOpenCount() }} em aberto</span>
+                </div>
+                <div class="bg-white rounded-lg px-3 py-1 shadow-sm border border-gray-100 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span class="text-sm font-medium">{{ getSentCount() }} a entregar</span>
+                </div>
+                <div class="bg-white rounded-lg px-3 py-1 shadow-sm border border-gray-100 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span class="text-sm font-medium">{{ getCompletedCount() }} finalizadas</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search e Filtros -->
+        <div class="mb-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <div class="relative flex-grow max-w-xl">
+                <input type="text" [(ngModel)]="filter" placeholder="Buscar por nome ou CPF..."
+                    class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition text-sm" />
+                <div class="absolute left-3 top-2.5 text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-8">
+            <div class="bg-gray-100 p-1.5 rounded-xl flex flex-wrap">
+                <button
+                    class="flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
+                    [ngClass]="{
+                        'bg-white text-indigo-700 shadow-sm': selected_tab === 'open',
+                        'text-gray-600 hover:bg-gray-50': selected_tab !== 'open'
+                    }" (click)="selected_tab = 'open'">
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Em Aberto
+                    </div>
+                </button>
+                <button
+                    class="flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
+                    [ngClass]="{
+                        'bg-white text-indigo-700 shadow-sm': selected_tab === 'sent',
+                        'text-gray-600 hover:bg-gray-50': selected_tab !== 'sent'
+                    }" (click)="selected_tab = 'sent'">
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        A Entregar
+                    </div>
+                </button>
+                <button
+                    class="flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
+                    [ngClass]="{
+                        'bg-white text-indigo-700 shadow-sm': selected_tab === 'completed',
+                        'text-gray-600 hover:bg-gray-50': selected_tab !== 'completed'
+                    }" (click)="selected_tab = 'completed'">
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Finalizadas
+                    </div>
+                </button>
+                <button
+                    class="flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
+                    [ngClass]="{
+                        'bg-white text-indigo-700 shadow-sm': selected_tab === 'deleted',
+                        'text-gray-600 hover:bg-gray-50': selected_tab !== 'deleted'
+                    }" (click)="selected_tab = 'deleted'">
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                            </path>
+                        </svg>
+                        Excluídas
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Button - Float -->
+        <div class="fixed bottom-6 right-6 z-50">
+            <button (click)="gotToNewPurchase()"
+                class="w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-700 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Clients List - Card Design -->
+        <div class="space-y-4 max-w-7xl mx-auto">
+            <div *ngFor="let client of getFilteredClients()"
+                class="rounded-2xl bg-white shadow-sm hover:shadow-md border border-gray-100 transition-all duration-300">
+
+                <!-- Client Header -->
+                <div class="p-5 border-b border-gray-100">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-1">
+                            <div class="flex items-center flex-wrap gap-2">
+                                <h3 class="text-xl font-semibold text-gray-900">{{ client.client }}</h3>
+
+                                <!-- Badges -->
+                                <div class="flex flex-wrap gap-1">
+                                    <span *ngIf="hasDeliveryRequested(client) && !hasDeliverySent(client)"
+                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
+                                            </path>
+                                        </svg>
+                                        Entrega Solicitada
+                                    </span>
+                                    <span *ngIf="hasDeliverySent(client)"
+                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
+                                            </path>
+                                        </svg>
+                                        Entrega Realizada
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <p class="text-sm text-gray-500">CPF: {{ client.cpf }}</p>
+                                <p class="text-sm font-medium text-gray-700">
+                                    <span class="text-green-600 font-semibold">R$ {{ getTotalAmount(client) | number:
+                                        '1.2-2' }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button
+                                class="text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition duration-200 flex items-center gap-1"
+                                (click)="toggleSelectedClient(client.cpf)">
+                                <span>{{ selected_client_cpf === client.cpf ? 'Fechar' : 'Ver Compras' }}</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" [ngClass]="{
+                                        'rotate-180': selected_client_cpf === client.cpf
+                                    }">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <button *ngIf="selected_tab === 'open'"
+                                class="text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition duration-200 flex items-center gap-1"
+                                (click)="sendWhatsAppMessage(client)">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z">
+                                    </path>
+                                </svg>
+                                <span>WhatsApp</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchases List -->
+                <div *ngIf="selected_client_cpf === client.cpf" class="p-4 bg-gray-50 rounded-b-2xl">
+                    <div class="space-y-4">
+                        <!-- Purchase Group -->
+                        <div *ngFor="let group of client.purchase_groups"
+                            class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                            <!-- Group Header -->
+                            <div class="p-4 bg-gray-50 border-b border-gray-100">
+                                <div class="flex justify-between items-center cursor-pointer" (click)="toggleGroup(group)">
+                                    <div class="flex items-center gap-3 cursor-pointer">
+                                        <svg class="w-4 h-4 text-gray-500 transition-transform"
+                                            [ngClass]="{'rotate-90': group.isExpanded}" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5l7 7-7 7"></path>
+                                        </svg>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <p class="text-sm font-medium text-gray-700">
+                                                    Compras do dia {{ group.date | date:'dd/MM/yyyy' }}
+                                                    <span class="ml-2 text-gray-500">({{ group.purchases.length }}
+                                                        itens)</span>
+                                                </p>
+                                                <!-- Tracking Code Badge -->
+                                                <span *ngIf="group.tracking_code"
+                                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                        </path>
+                                                    </svg>
+                                                    Rastreio: {{ group.tracking_code }}
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <p class="text-sm text-gray-600">Total: R$ {{ group.total_amount |
+                                                    number:'1.2-2' }}</p>
+                                                    
+                                                <!-- Payment Method Badge -->
+                                                <span *ngIf="group.payment_method" 
+                                                    [ngClass]="{
+                                                        'bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 border border-purple-200': group.payment_method === 'Nubank',
+                                                        'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border border-green-200': group.payment_method === 'PicPay'
+                                                    }"
+                                                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium shadow-sm transition-all">
+                                                    <span class="flex items-center gap-1.5">
+                                                        <!-- Nubank Icon -->
+                                                        <span *ngIf="group.payment_method === 'Nubank'" 
+                                                            class="w-4 h-4 rounded-full bg-purple-200 flex items-center justify-center shadow-inner">
+                                                            <svg class="w-2.5 h-2.5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                                                </path>
+                                                            </svg>
+                                                        </span>
+                                                        <!-- PicPay Icon -->
+                                                        <span *ngIf="group.payment_method === 'PicPay'" 
+                                                            class="w-4 h-4 rounded-full bg-green-200 flex items-center justify-center shadow-inner">
+                                                            <svg class="w-2.5 h-2.5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                                </path>
+                                                            </svg>
+                                                        </span>
+                                                        <span class="font-medium">{{ group.payment_method }}</span>
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <div *ngIf="selected_tab === 'deleted'" class="flex-shrink-0">
+                                            <button
+                                                class="px-3 py-1.5 bg-yellow-600 text-white rounded-lg text-xs hover:bg-yellow-700 transition flex items-center gap-1"
+                                                (click)="returnGroupToOpen(group.date, client.cpf)">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                                    </path>
+                                                </svg>
+                                                Reabrir Sacolinha
+                                            </button>
+                                        </div>
+
+                                        <!-- Para compras em outras abas -->
+                                        <div *ngIf="selected_tab !== 'deleted'" class="flex items-center gap-2">
+                                            <!-- Botão de Pagamento -->
+                                            <div *ngIf="!group.is_paid" class="relative">
+                                                <button
+                                                    class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs flex items-center gap-1 hover:bg-green-700 transition"
+                                                    (click)="$event.stopPropagation(); group.showPaymentOptions = !group.showPaymentOptions">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z">
+                                                        </path>
+                                                    </svg>
+                                                    Pago
+                                                </button>
+
+                                                <div *ngIf="group.showPaymentOptions"
+                                                    class="absolute right-0 mt-1 w-44 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                                                    <div class="py-1">
+                                                        <button
+                                                            (click)="markGroupAsPaid(group.date, client.cpf, 'Nubank')"
+                                                            class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                                            <span
+                                                                class="w-5 h-5 rounded-full bg-purple-200 flex items-center justify-center">
+                                                                <svg class="w-3 h-3 text-purple-700" fill="none"
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                                                    </path>
+                                                                </svg>
+                                                            </span>
+                                                            Nubank
+                                                        </button>
+                                                        <button
+                                                            (click)="markGroupAsPaid(group.date, client.cpf, 'PicPay')"
+                                                            class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                                            <span
+                                                                class="w-5 h-5 rounded-full bg-green-200 flex items-center justify-center">
+                                                                <svg class="w-3 h-3 text-green-700" fill="none"
+                                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                                        stroke-width="2"
+                                                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                                    </path>
+                                                                </svg>
+                                                            </span>
+                                                            PicPay
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Botão de Envio -->
+                                            <button *ngIf="group.is_paid && !group.is_delivery_sent"
+                                                class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition flex items-center gap-1"
+                                                (click)="openTrackingDialog(group.date, client.cpf)">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Enviado
+                                            </button>
+
+                                            <!-- Botão de Reabrir -->
+                                            <button *ngIf="group.is_paid && group.is_delivery_sent && !group.is_deleted"
+                                                class="px-3 py-1.5 bg-yellow-600 text-white rounded-lg text-xs hover:bg-yellow-700 transition flex items-center gap-1"
+                                                (click)="returnGroupToOpen(group.date, client.cpf)">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                                                    </path>
+                                                </svg>
+                                                Reabrir
+                                            </button>
+
+                                            <!-- Botão de Excluir -->
+                                            <div class="relative" *ngIf="!group.is_deleted">
+                                                <button
+                                                    class="p-1.5 text-gray-500 hover:text-red-600 rounded-lg hover:bg-gray-100 transition"
+                                                    (click)="$event.stopPropagation(); toggleGroupDeleteOption(group)">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z">
+                                                        </path>
+                                                    </svg>
+                                                </button>
+
+                                                <div *ngIf="group.showDeleteOption" class="absolute right-0 mt-1 z-50">
+                                                    <button
+                                                        class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs hover:bg-red-700 transition flex items-center gap-1 whitespace-nowrap"
+                                                        (click)="markGroupAsDeleted(group.date, client.cpf)">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                            </path>
+                                                        </svg>
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Purchase Items -->
+                            <div *ngIf="group.isExpanded" class="divide-y divide-gray-100">
+                                <div *ngFor="let purchase of group.purchases"
+                                    class="p-4 flex justify-between items-center bg-white">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-2 h-2 rounded-full" [ngClass]="{
+                                                'bg-red-500': !group.is_paid,
+                                                'bg-blue-500': group.is_paid && !group.is_delivery_sent,
+                                                'bg-green-500': group.is_paid && group.is_delivery_sent
+                                            }"></div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">{{ purchase.clothing }}</p>
+                                            <p class="text-sm text-gray-500">R$ {{ purchase.price | number:'1.2-2' }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="getFilteredClients().length === 0" class="mt-8 text-center bg-white rounded-3xl shadow-md p-10">
+                <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9.172 9.172a4 4 0 015.656 0M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Nenhuma pendência encontrada</h3>
+                <p class="mt-1 text-sm text-gray-500">Tente ajustar sua busca ou verifique as outras abas.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Tracking Code Dialog -->
+<div *ngIf="showTrackingDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Código de Rastreio (Opcional)</h3>
+        <p class="text-sm text-gray-500 mb-4">Se houver código de rastreio, insira abaixo. Caso contrário, pode deixar em branco.</p>
+        <input type="text" [(ngModel)]="trackingCode" placeholder="Digite o código de rastreio"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition mb-4">
+        <div class="flex justify-end gap-3">
+            <button (click)="cancelTracking()"
+                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                Cancelar
+            </button>
+            <button (click)="confirmTracking()"
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+                Marcar como Enviado
+            </button>
+        </div>
+    </div>
+</div>

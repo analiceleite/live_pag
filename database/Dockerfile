@@ -7,3 +7,4 @@ ENV POSTGRES_PASSWORD=root
 
 # Copia o script SQL de criação para dentro do container
 COPY init.sql /docker-entrypoint-initdb.d/init.sql
+    

@@ -5,7 +5,9 @@ const router = express.Router();
 const controller = require('../controllers/clothing.controller');
 const auth = require('../middlewares/auth.middleware');
 
-router.post('/clothings', auth('admin'), controller.createClothing);
-router.get('/clothings', auth('admin'), controller.getAllClothings);
+router.post('/create', auth('admin'), controller.createClothing);
+router.get('/get-all', auth('admin'), controller.getAllClothings);
+router.put('/edit/:id', auth('admin'), controller.editClothing);
+router.delete('/delete/:id', auth('admin'), controller.deleteClothing);
 
 module.exports = router;
