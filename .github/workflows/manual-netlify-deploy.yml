@@ -1,0 +1,11 @@
+name: Manual Netlify Redeploy
+
+on:
+  workflow_dispatch:  # Permite execução manual através da interface do GitHub
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Netlify Build
+        run: curl -X POST -d {} ${{ secrets.NETLIFY_BUILD_HOOK }}
