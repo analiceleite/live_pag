@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { ClientApi } from '../../../../@services/api/client/client.api';
 import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
+import { LoadingComponent } from '../../../../@common/components/loading/loading.component';
 
 @Component({
   selector: 'app-client-registration',
@@ -16,6 +17,7 @@ import { BackToMenuComponent } from '../../../../@common/components/back-to-menu
     FormsModule,
     NgxMaskDirective,
     BackToMenuComponent,
+    LoadingComponent,
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,

@@ -34,13 +34,36 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
-                <input type="text" [(ngModel)]="filter" placeholder="Buscar por nome, preço ou outros atributos..."
-                    class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition text-sm" />
+                <input type="text" [(ngModel)]="filter" [disabled]="isLoading" placeholder="Buscar peças..."
+                    class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition text-sm disabled:opacity-50 disabled:cursor-not-allowed" />
             </div>
         </div>
 
-        <!-- Tabela de Peças -->
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="bg-white rounded-2xl shadow-sm p-8">
+            <div class="animate-pulse space-y-4">
+                <!-- Shimmer para a tabela -->
+                <div class="w-full">
+                    <!-- Cabeçalho da tabela shimmer -->
+                    <div class="h-12 bg-gray-200 rounded-t-xl"></div>
+                    <!-- Linhas da tabela shimmer -->
+                    <div class="space-y-3 py-3">
+                        <div class="h-12 bg-gray-100 w-full"></div>
+                        <div class="h-12 bg-gray-100 w-full"></div>
+                        <div class="h-12 bg-gray-100 w-full"></div>
+                        <div class="h-12 bg-gray-100 w-full"></div>
+                        <div class="h-12 bg-gray-100 w-full"></div>
+                    </div>
+                </div>
+                <!-- Texto de carregamento -->
+                <div class="flex justify-center">
+                    <div class="text-sm text-gray-500">Carregando informações...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Peças (mostrar apenas quando não estiver carregando) -->
+        <div *ngIf="!isLoading" class="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 text-center">
@@ -117,7 +140,7 @@
         </div>
 
         <!-- Mensagem de Nenhuma Peça -->
-        <div *ngIf="(clothings | clothingFilter: filter).length === 0" 
+        <div *ngIf="!isLoading && (clothings | clothingFilter: filter).length === 0" 
             class="mt-8 text-center bg-white rounded-2xl shadow-sm p-8">
             <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,8 +171,14 @@
                     class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all">
                     Cancelar
                 </button>
-                <button (click)="confirmDelete()"
-                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">
+                <button [disabled]="isLoadingAction" (click)="confirmDelete()"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all disabled:opacity-50">
+                    <span *ngIf="isLoadingAction" class="w-4 h-4 mr-2">
+                        <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </span>
                     Deletar
                 </button>
             </div>
@@ -212,8 +241,14 @@
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all">
                         Cancelar
                     </button>
-                    <button type="submit"
-                        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                    <button type="submit" [disabled]="isLoadingAction"
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50">
+                        <span *ngIf="isLoadingAction" class="w-4 h-4 mr-2">
+                            <svg class="animate-spin" viewBox="0 0 24 24" fill="none">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
                         Salvar Alterações
                     </button>
                 </div>

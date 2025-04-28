@@ -34,6 +34,7 @@ export class MiningListComponent implements OnInit {
   selectedMining: any = null;
   showEditModal: boolean = false;
   showDeleteModal: boolean = false;
+  isLoading: boolean = false;
 
   constructor(private miningApi: MiningApi, private router: Router) {}
 
@@ -42,13 +43,16 @@ export class MiningListComponent implements OnInit {
   }
 
   getMinings(): void {
+    this.isLoading = true;
     this.miningApi.getMining().subscribe({
       next: (data: any[]) => {
         this.minings = data;
+        this.isLoading = false;
       },
       error: (err: any) => {
         console.error('Erro ao carregar garimpos', err);
         this.errorMessage = 'Erro ao carregar os garimpos.';
+        this.isLoading = false;
       }
     });
   }

@@ -20,7 +20,12 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/_redirects"
+              "src/_redirects",
+              {
+                "glob": "**/*",
+                "input": "src/assets/images",
+                "output": "/assets/images"
+              }
             ],
             "styles": ["src/styles.scss"],
             "scripts": [],
@@ -54,8 +59,32 @@
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
             }
-          }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "buildTarget": "frontend:build"
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "frontend:build:production"
+            },
+            "development": {
+              "buildTarget": "frontend:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
         }
       }
     }

@@ -9,11 +9,12 @@ import { QRCodeModule } from 'angularx-qrcode';
 import { PixApi } from '../../../../@services/api/shared/pix.api';
 import { PurchaseApi } from '../../../../@services/api/purchase/purchase.api';
 import { PaymentApi } from '../../../../@services/api/shared/payment.api';
+import { VersionComponent } from '../../../../@common/components/version/version.component';
 
 @Component({
   selector: 'app-pendencies-user',
   standalone: true,
-  imports: [CommonModule, FormsModule, QRCodeModule, MatTableModule, MatButtonModule, MatIconModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, QRCodeModule, MatTableModule, MatButtonModule, MatIconModule, MatSnackBarModule, VersionComponent],
   templateUrl: './pendencies-user.component.html'
 })
 export class PendenciesUserComponent implements OnInit {

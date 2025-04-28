@@ -1,11 +1,12 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Version } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { VersionComponent } from '../../../@common/components/version/version.component';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe],
+  imports: [CommonModule, RouterModule, DatePipe, VersionComponent],
   templateUrl: './menu.component.html'
 })
 export class MenuComponent implements OnInit {

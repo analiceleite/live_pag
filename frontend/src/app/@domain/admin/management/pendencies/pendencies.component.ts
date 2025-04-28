@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
+import { LoadingComponent } from '../../../../@common/components/loading/loading.component';
 import { 
     Client, 
     ClientPendencies, 
@@ -28,6 +29,7 @@ import { forkJoin } from 'rxjs';
         MatIconModule,
         FormsModule,
         BackToMenuComponent,
+        LoadingComponent, // Add this line
     ],
     templateUrl: './pendencies.component.html'
 })

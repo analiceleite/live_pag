@@ -8,6 +8,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { ClientApi } from '../../../../@services/api/client/client.api';
 import { ClientTextPipe } from '../../../../@services/pipes/client/client-text.pipe';
+
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
 
 @Component({
@@ -32,14 +33,21 @@ export class ClientListComponent implements OnInit {
   showEditModal: boolean = false;
   clientToDelete: any = null;
   clientToEdit: any = { name: '', instagram: '', cpf: '', phone: '', zip_code: '', address: '', reference_point: '' };
+  isLoading: boolean = false;
+  isLoadingAction: boolean = false;
 
   constructor(private clientService: ClientApi, private router: Router) { }
 
   ngOnInit(): void {
+    this.loadClients();
+  }
+
+  loadClients() {
+    this.isLoading = true;
     this.clientService.client$.subscribe((clients) => {
       this.clients = clients;
+      this.isLoading = false;
     });
-
     this.clientService.getAll();
   }
 
@@ -53,7 +61,9 @@ export class ClientListComponent implements OnInit {
   }
 
   updateClient() {
+    this.isLoadingAction = true;
     this.clientService.edit(this.clientToEdit.id, this.clientToEdit).subscribe(() => {
+      this.isLoadingAction = false;
       this.closeEditModal();
     });
   }
@@ -69,7 +79,9 @@ export class ClientListComponent implements OnInit {
 
   confirmDelete() {
     if (this.clientToDelete) {
+      this.isLoadingAction = true;
       this.clientService.delete(this.clientToDelete.id).subscribe(() => {
+        this.isLoadingAction = false;
         this.closeDeleteModal();
       });
     }

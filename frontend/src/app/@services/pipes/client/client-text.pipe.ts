@@ -5,13 +5,18 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true
 })
 export class ClientTextPipe implements PipeTransform {
-  transform(clients: any[], term: string): any[] {
-    if (!clients) return [];
+  transform(items: any[], filter: string): any[] {
+    if (!items || !filter) {
+      return items;
+    }
 
-    const lowerTerm = (term || '').trim().toLowerCase();
-
-    return clients.filter(client =>
-      `${client.name} ${client.cpf}`.toLowerCase().includes(lowerTerm)
-    );
+    filter = filter.toLowerCase();
+    
+    return items.filter(item => {
+      return item.name?.toLowerCase().includes(filter) || 
+             item.cpf?.toLowerCase().includes(filter) ||
+             item.instagram?.toLowerCase().includes(filter) ||
+             item.phone?.includes(filter);
+    });
   }
 }

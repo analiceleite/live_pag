@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { PaymentApi, PaymentMethod, MonthlyData } from '../../../../@services/api/shared/payment.api';
 import { RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
-
+import { LoadingComponent } from '../../../../@common/components/loading/loading.component';
 @Component({
   selector: 'app-finances',
   standalone: true,
@@ -20,6 +20,7 @@ import { forkJoin } from 'rxjs';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
+    LoadingComponent,
   ],
   templateUrl: './finances.component.html'
 })

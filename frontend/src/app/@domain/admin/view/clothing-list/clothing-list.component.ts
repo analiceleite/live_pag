@@ -32,6 +32,8 @@ export class ClothingListComponent implements OnInit {
   showEditModal: boolean = false;
   pieceToDelete: any = null;
   pieceToEdit: any = null;
+  isLoading: boolean = false;
+  isLoadingAction: boolean = false;
 
   constructor(private clothingService: ClothingApi, private router: Router) {}
 
@@ -40,8 +42,14 @@ export class ClothingListComponent implements OnInit {
   }
 
   getClothings() {
-    this.clothingService.getAll().subscribe((data: any) => {
-      this.clothings = data;
+    this.isLoading = true;
+    this.clothingService.getAll().subscribe({
+      next: (data: any) => {
+        this.clothings = data;
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
     });
   }
 
@@ -57,9 +65,15 @@ export class ClothingListComponent implements OnInit {
 
   updateClothing() {
     if (this.pieceToEdit) {
-      this.clothingService.update(this.pieceToEdit).subscribe(() => {
-        this.getClothings();
-        this.closeEditModal();
+      this.isLoadingAction = true;
+      this.clothingService.update(this.pieceToEdit).subscribe({
+        next: () => {
+          this.getClothings();
+          this.closeEditModal();
+        },
+        complete: () => {
+          this.isLoadingAction = false;
+        }
       });
     }
   }
@@ -76,9 +90,15 @@ export class ClothingListComponent implements OnInit {
 
   confirmDelete() {
     if (this.pieceToDelete) {
-      this.clothingService.delete(this.pieceToDelete.id).subscribe(() => {
-        this.getClothings();
-        this.closeDeleteModal();
+      this.isLoadingAction = true;
+      this.clothingService.delete(this.pieceToDelete.id).subscribe({
+        next: () => {
+          this.getClothings();
+          this.closeDeleteModal();
+        },
+        complete: () => {
+          this.isLoadingAction = false;
+        }
       });
     }
   }

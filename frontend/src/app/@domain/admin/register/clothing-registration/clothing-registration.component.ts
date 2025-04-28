@@ -3,11 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClothingApi } from '../../../../@services/api/shared/clothing.api';
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
+import { LoadingComponent } from '../../../../@common/components/loading/loading.component';
 
 @Component({
   selector: 'app-clothing-registration',
   standalone: true,
-  imports: [CommonModule, FormsModule, BackToMenuComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    BackToMenuComponent,
+    LoadingComponent
+  ],
   templateUrl: './clothing-registration.component.html',
 })
 export class ClothingRegistrationComponent implements OnInit {
@@ -19,6 +25,7 @@ export class ClothingRegistrationComponent implements OnInit {
   discount = 0;
   message = '';
   errorMessage = '';
+  isLoading = false;
 
   constructor(private clothingService: ClothingApi) {}
 
@@ -33,6 +40,8 @@ export class ClothingRegistrationComponent implements OnInit {
       return;
     }
 
+    this.isLoading = true;
+
     const purchase = {
       name: this.piece_name,
       price: this.price,
@@ -42,17 +51,32 @@ export class ClothingRegistrationComponent implements OnInit {
       discount: this.discount || 0
     };
 
-    this.clothingService.add(purchase).subscribe(() => {
-      this.message = 'Compra cadastrada com sucesso!';
-      setTimeout(() => {
-        this.message = ''; 
-      }, 3000);
-      this.piece_name = '';
-      this.price = 0;
-      this.queue_name = '';
-      this.purchase_channel = '';
-      this.purchase_type = '';
-      this.discount = 0;
+    this.clothingService.add(purchase).subscribe({
+      next: () => {
+        this.message = 'Compra cadastrada com sucesso!';
+        setTimeout(() => {
+          this.message = ''; 
+        }, 3000);
+        this.resetForm();
+      },
+      error: (err) => {
+        this.errorMessage = 'Erro ao cadastrar compra.';
+        setTimeout(() => {
+          this.errorMessage = ''; 
+        }, 3000);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
     });
+  }
+
+  private resetForm() {
+    this.piece_name = '';
+    this.price = 0;
+    this.queue_name = '';
+    this.purchase_channel = '';
+    this.purchase_type = '';
+    this.discount = 0;
   }
 }
