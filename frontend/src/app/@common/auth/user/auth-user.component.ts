@@ -14,13 +14,13 @@ import { VersionComponent } from '../../components/version/version.component';
   templateUrl: './auth-user.component.html',
 })
 export class AuthUserComponent {
-  cpf = '';
+  phone = '';
   error = '';
 
   constructor(private loginService: AuthApi, private router: Router) { }
 
   login() {
-    this.loginService.login(this.cpf).subscribe({
+    this.loginService.login(this.phone).subscribe({
       next: (res: any) => {
         localStorage.setItem('role', res.role);
         localStorage.setItem('clientId', res.clientId);
@@ -28,7 +28,7 @@ export class AuthUserComponent {
         console.log('Login successful:', res);
       },
       error: () => {
-        this.error = 'CPF inválido';
+        this.error = 'Telefone inválido';
       }
     });
   }

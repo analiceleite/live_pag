@@ -1,0 +1,172 @@
+<div *ngIf="show" class="fixed inset-0 flex items-center justify-center z-50 animate-fadeIn">
+    <div class="absolute inset-0 bg-black bg-opacity-50" (click)="closeModal()"></div>
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden z-10">
+        <div class="flex items-center justify-between p-6 border-b">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800">Registrar Compra</h3>
+                <p class="text-gray-600 mt-1">Cliente: {{ client?.name }}</p>
+            </div>
+            <button (click)="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[60vh] overflow-auto">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-medium text-gray-700">Peças Selecionadas</h4>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{{
+                        selected_clothings.length }} itens</span>
+                </div>
+
+                <div *ngIf="selected_clothings.length === 0"
+                    class="bg-gray-50 rounded-xl p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-gray-500">Nenhuma peça selecionada</p>
+                    <p class="text-sm text-gray-400 mt-1">Selecione peças da lista ao lado</p>
+                </div>
+
+                <div *ngIf="selected_clothings.length > 0" class="space-y-2 max-h-[300px] overflow-y-auto">
+                    <div *ngFor="let clothing of selected_clothings"
+                        class="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
+                                <span class="text-xs font-medium text-gray-600">#{{ clothing.id }}</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">{{ clothing.name }}</p>
+                                <p class="text-xs text-gray-500">R$ {{ clothing.price | number:'1.2-2' }}</p>
+                            </div>
+                        </div>
+                        <button (click)="removeClothing(clothing)" class="text-gray-400 hover:text-red-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Total Value -->
+                <div *ngIf="selected_clothings.length > 0" class="bg-gray-50 p-4 rounded-xl mt-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-gray-700">Total</span>
+                        <span class="text-lg font-bold text-gray-900">R$ {{ getTotalSelectedClothingsPrice() }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-2">Peças Disponíveis</h4>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        <input [(ngModel)]="search_term" placeholder="Buscar peças..."
+                            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
+                    </div>
+                </div>
+
+                <div class="space-y-2 max-h-[300px] overflow-y-auto">
+                    <div *ngFor="let clothing of available_clothings"
+                        class="flex items-center justify-between p-3 rounded-xl border"
+                        [class.border-blue-500]="isClothingSelected(clothing)"
+                        [class.bg-blue-50]="isClothingSelected(clothing)"
+                        [class.border-gray-200]="!isClothingSelected(clothing)"
+                        [class.bg-white]="!isClothingSelected(clothing)">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center mr-3">
+                                <span class="text-xs font-medium text-gray-600">#{{ clothing.id }}</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">{{ clothing.name }}</p>
+                                <p class="text-xs text-gray-500">R$ {{ clothing.price | number:'1.2-2' }}</p>
+                            </div>
+                        </div>
+                        <button (click)="toggleClothingSelection(clothing)"
+                            class="w-6 h-6 rounded-full flex items-center justify-center"
+                            [class.bg-blue-500]="isClothingSelected(clothing)"
+                            [class.bg-gray-200]="!isClothingSelected(clothing)">
+                            <svg *ngIf="isClothingSelected(clothing)" class="w-4 h-4 text-white" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <svg *ngIf="!isClothingSelected(clothing)" class="w-4 h-4 text-gray-500" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div *ngIf="filtered_clothings.length === 0" class="bg-gray-50 rounded-xl p-6 text-center">
+                        <p class="text-gray-500">Nenhuma peça encontrada</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 border-t">
+            <div *ngIf="success_message" class="mb-4 bg-green-50 border-l-4 border-green-500 p-4 rounded-xl">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700">{{ success_message }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="error_message" class="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-xl">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">{{ error_message }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button (click)="closeModal()"
+                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </button>
+                <button (click)="registerPurchase()" [disabled]="selected_clothings.length === 0 || is_loading"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg *ngIf="is_loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    {{ is_loading ? 'Salvando...' : 'Registrar Compra' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
