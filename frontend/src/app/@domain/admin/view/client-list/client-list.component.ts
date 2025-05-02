@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -10,6 +10,11 @@ import { ClientApi } from '../../../../@services/api/client/client.api';
 import { ClientTextPipe } from '../../../../@services/pipes/client/client-text.pipe';
 
 import { BackToMenuComponent } from '../../../../@common/components/back-to-menu/back-to-menu.component';
+import { ModalDeleteComponent } from '../../../../@common/components/modal-delete/modal-delete.component';
+import { ModalEditComponent } from '../../../../@common/components/modal-edit/modal-edit.component';
+import { PurchaseModalComponent } from '../../../../@common/components/modal-purchase/modal-purchase.component';
+import { PurchaseApi } from '../../../../@services/api/purchase/purchase.api';
+import { ClothingApi } from '../../../../@services/api/shared/clothing.api';
 
 @Component({
   selector: 'app-client-list',
@@ -22,7 +27,10 @@ import { BackToMenuComponent } from '../../../../@common/components/back-to-menu
     MatIconModule,
     MatSnackBarModule,
     ClientTextPipe,
-    BackToMenuComponent
+    BackToMenuComponent,
+    ModalDeleteComponent,
+    ModalEditComponent,
+    PurchaseModalComponent
   ],
   templateUrl: './client-list.component.html'
 })
@@ -36,7 +44,17 @@ export class ClientListComponent implements OnInit {
   isLoading: boolean = false;
   isLoadingAction: boolean = false;
 
-  constructor(private clientService: ClientApi, private router: Router) { }
+  showPurchaseModal = false;
+  selectedClient: any = null;
+  availableClothings: any[] = [];
+  selectedClothings: any[] = [];
+  searchTerm = '';
+  success_message = '';
+  error_message = ''
+
+  openedMenuId: number | null = null;
+
+  constructor(private clientService: ClientApi, private clotingService: ClothingApi, private purchaseService: PurchaseApi, private router: Router) { }
 
   ngOnInit(): void {
     this.loadClients();
@@ -51,16 +69,22 @@ export class ClientListComponent implements OnInit {
     this.clientService.getAll();
   }
 
-  editClient(client: any) {
+  openPurchaseModal(client: any) {
+    this.selectedClient = client;
+    this.showPurchaseModal = true;
+  }
+
+  closePurchaseModal() {
+    this.showPurchaseModal = false;
+    this.selectedClient = null;
+  }
+
+  openEditModal(client: any) {
     this.clientToEdit = { ...client };
     this.showEditModal = true;
   }
 
-  closeEditModal() {
-    this.showEditModal = false;
-  }
-
-  updateClient() {
+  editClient() {
     this.isLoadingAction = true;
     this.clientService.edit(this.clientToEdit.id, this.clientToEdit).subscribe(() => {
       this.isLoadingAction = false;
@@ -71,6 +95,10 @@ export class ClientListComponent implements OnInit {
   deleteClient(client: any) {
     this.clientToDelete = client;
     this.showDeleteModal = true;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
   }
 
   closeDeleteModal() {
@@ -89,5 +117,9 @@ export class ClientListComponent implements OnInit {
 
   gotToNewClient(): void {
     this.router.navigate(['/cadastro-clientes']);
+  }
+
+  toggleMenu(clientId: number) {
+    this.openedMenuId = this.openedMenuId === clientId ? null : clientId;
   }
 }

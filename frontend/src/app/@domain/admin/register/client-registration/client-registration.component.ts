@@ -45,7 +45,6 @@ export class ClientRegistrationComponent implements OnInit {
     this.success_message = '';
     this.error_message = '';
 
-    // Verificar se os campos obrigatórios estão preenchidos
     if (!this.name || !this.cpf || !this.phone || !this.address) {
       this.error_message = 'Por favor, preencha todos os campos obrigatórios.';
       return;
