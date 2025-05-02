@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { sql } = require('./config/database');
 const app = express();
 
 const port = process.env.PORT || 10000;
@@ -10,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // Add healthcheck route
-app.get('/', (req, res) => {
+app.get('/', (res) => {
   res.json({ status: 'ok' });
 });
 
@@ -30,21 +29,15 @@ app.use('/api/mining', miningRoutes);
 app.use('/api/pix', pixRoutes);
 app.use('/api/payments', paymentRoutes);
 
-app.use((req, res) => {
+app.use((res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, res) => {
   console.error('Request error:', err);
   res.status(500).json({ error: err.message });
 });
 
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on port ${port}`);
-});
-
-process.on('SIGTERM', () => {
-  server.close(() => {
-    console.log('Server shutting down');
-  });
 });
