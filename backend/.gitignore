@@ -2,8 +2,10 @@
 node_modules/
 database.js
 database
+scripts/
 
 # .env files
+backend/.env
 .env
 .env.*  # caso você use arquivos como .env.development, .env.production etc.
 
