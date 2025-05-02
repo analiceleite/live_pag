@@ -8,39 +8,36 @@ exports.generatePix = async (req, res) => {
     }
 
     try {
-        const chavePix = '+5547997616421';
-        const nomeRecebedor = 'ANALICE';
+        const chavePix = '+5547999257969';
+        const nomeRecebedor = 'Carlos';
         const cidade = 'JOINVILLE';
         const valorFormatado = Number(valor).toFixed(2);
-        const txid = 'LIVE';
+        const txid = 'SACOLINHA-FLORADA';
 
         function formatField(id, value) {
             const size = String(value.length).padStart(2, '0');
             return `${id}${size}${value}`;
         }
 
-        // Payload formatado conforme padrão do Banco Central
         const payloadSemCRC = [
-            formatField('00', '01'), // Payload Format Indicator
-            formatField('26', // Merchant Account Information
+            formatField('00', '01'), 
+            formatField('26',
                 formatField('00', 'BR.GOV.BCB.PIX') +
                 formatField('01', chavePix)
             ),
-            formatField('52', '0000'), // Merchant Category Code
-            formatField('53', '986'), // Moeda: 986 = BRL
-            formatField('54', valorFormatado), // Valor
-            formatField('58', 'BR'), // País
-            formatField('59', nomeRecebedor), // Nome do recebedor
-            formatField('60', cidade), // Cidade
-            formatField('62', // Adicional data
+            formatField('52', '0000'), 
+            formatField('53', '986'), 
+            formatField('54', valorFormatado), 
+            formatField('58', 'BR'), 
+            formatField('59', nomeRecebedor), 
+            formatField('60', cidade), 
+            formatField('62', 
                 formatField('05', txid)
             )
         ].join('');
 
-        // Adiciona campo do CRC no final (com valor temporário)
         const payloadComCRCBase = payloadSemCRC + '6304';
 
-        // Função para calcular CRC-16-CCITT
         function crc16(str) {
             let crc = 0xFFFF;
             for (let i = 0; i < str.length; i++) {

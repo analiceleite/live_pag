@@ -74,15 +74,32 @@ exports.deleteClient = async (req, res) => {
 
   try {
     const checkClient = await sql`SELECT id FROM clients WHERE id = ${id}`;
-    
+
     if (checkClient.length === 0) {
       return res.status(404).json({ error: "Client not found" });
     }
 
-    await sql`DELETE FROM clients WHERE id = ${id}`;
+    await sql`
+      DELETE FROM purchase_clothings 
+      WHERE purchase_id IN (
+        SELECT id FROM purchases WHERE client_id = ${id}
+      )
+    `;
+
+    await sql`
+      DELETE FROM purchases 
+      WHERE client_id = ${id}
+    `;
+
+    await sql`
+      DELETE FROM clients 
+      WHERE id = ${id}
+    `;
+
     res.status(200).json({ message: "Client deleted successfully!" });
   } catch (err) {
     console.error('Error deleting client:', err);
     res.status(500).json({ error: "Error deleting client", details: err.message });
   }
 };
+

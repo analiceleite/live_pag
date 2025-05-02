@@ -13,6 +13,20 @@ exports.getAllClothings = async (req, res) => {
     }
 };
 
+exports.getAvailableClothings = async (req, res) => {
+    try {
+        const result = await sql`
+            SELECT * FROM clothings 
+            WHERE id NOT IN (
+                SELECT clothing_id FROM purchase_clothings
+            )`;
+        res.status(200).json(result);
+    } catch (err) {
+        console.error('Error fetching available clothings:', err);
+        res.status(500).json({ error: "Error fetching available clothing items", details: err.message });
+    }
+}
+
 exports.createClothing = async (req, res) => {
     const { name, price, queue_name, purchase_channel, purchase_type, discount } = req.body;
 

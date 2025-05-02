@@ -6,7 +6,8 @@ const controller = require('../controllers/clothing.controller');
 const auth = require('../middlewares/auth.middleware');
 
 router.post('/create', auth('admin'), controller.createClothing);
-router.get('/get-all', auth('admin'), controller.getAllClothings);
+router.get('/get-all', auth('admin'), controller.getAllClothings); 
+router.get('/get-available', auth('admin'), controller.getAvailableClothings);
 router.put('/edit/:id', auth('admin'), controller.editClothing);
 router.delete('/delete/:id', auth('admin'), controller.deleteClothing);
 

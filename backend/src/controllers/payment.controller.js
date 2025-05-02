@@ -62,14 +62,13 @@ exports.getMonthlyData = async (req, res) => {
     try {
         const result = await sql`
             SELECT 
-                SUM(CASE WHEN pm.name = 'picpay' THEN cl.price ELSE 0 END) as picpay_amount,
-                SUM(CASE WHEN pm.name = 'nubank' THEN cl.price ELSE 0 END) as nubank_amount,
-                SUM(CASE WHEN p.is_paid = true THEN cl.price ELSE 0 END) as total_amount,
+                COALESCE(SUM(CASE WHEN p.payment_method_name = 'picpay' THEN cl.price ELSE 0 END), 0) as picpay_amount,
+                COALESCE(SUM(CASE WHEN p.payment_method_name = 'nubank' THEN cl.price ELSE 0 END), 0) as nubank_amount,
+                COALESCE(SUM(cl.price), 0) as total_amount,
                 (SELECT COALESCE(SUM(total_value), 0) FROM mining 
-                 WHERE EXTRACT(MONTH FROM created_at) = ${monthNumber}
-                 AND EXTRACT(YEAR FROM created_at) = ${year}) as investment_amount
+                WHERE EXTRACT(MONTH FROM created_at) = ${monthNumber}
+                AND EXTRACT(YEAR FROM created_at) = ${year}) as investment_amount
             FROM purchases p
-            JOIN payment_method pm ON p.payment_method_id = pm.id
             JOIN purchase_clothings pc ON p.id = pc.purchase_id
             JOIN clothings cl ON pc.clothing_id = cl.id
             WHERE EXTRACT(MONTH FROM p.created_at) = ${monthNumber}
@@ -106,7 +105,7 @@ exports.exportMonthlyData = async (req, res) => {
                  WHERE EXTRACT(MONTH FROM created_at) = ${monthNumber}
                  AND EXTRACT(YEAR FROM created_at) = ${year}) as investment_amount
             FROM purchases p
-            JOIN payment_method pm ON p.payment_method_id = pm.id
+            JOIN payment_method pm ON p.payment_method_name = pm.name
             JOIN purchase_clothings pc ON p.id = pc.purchase_id
             JOIN clothings cl ON pc.clothing_id = cl.id
             WHERE EXTRACT(MONTH FROM p.created_at) = ${monthNumber}
@@ -151,6 +150,8 @@ exports.exportMonthlyData = async (req, res) => {
         worksheet.getRow(1).height = 30;
 
         // Informações do relatório - todas 3 colunas
+        const currentDate = new Date().toLocaleDateString('pt-BR');
+        
         worksheet.mergeCells('A3:C3');
         const infoCell = worksheet.getCell('A3');
         infoCell.value = `Data de geração: ${currentDate}`;

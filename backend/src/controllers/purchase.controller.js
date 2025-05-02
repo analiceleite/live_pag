@@ -11,7 +11,7 @@ exports.getAllPendencies = async (req, res) => {
       JOIN clients c ON p.client_id = c.id
       JOIN purchase_clothings pc ON p.id = pc.purchase_id
       JOIN clothings cl ON cl.id = pc.clothing_id
-      LEFT JOIN payment_method pm ON p.payment_method_id = pm.id
+      LEFT JOIN payment_method pm ON p.payment_method_name = pm.name
       ORDER BY c.name, p.created_at DESC
     `;
 
@@ -62,7 +62,7 @@ exports.createPurchase = async (req, res) => {
   const { client_id, clothings } = req.body;
 
   try {
-    // Verificar se a lista de peças está vazia
+
     if (!clothings?.length) {
       return res.status(400).json({ error: 'Clothing list cannot be empty' });
     }
@@ -79,12 +79,10 @@ exports.createPurchase = async (req, res) => {
         return res.status(400).json({ error: `Clothing ID ${clothing_id} is already associated with another purchase` });
       }
 
-      // Criar uma nova compra
       const [newPurchase] = await sql`
         INSERT INTO purchases (client_id) VALUES (${client_id}) RETURNING id
       `;
 
-      // Adicionar a peça à compra
       await sql`
         INSERT INTO purchase_clothings (purchase_id, clothing_id) VALUES (${newPurchase.id}, ${clothing_id})
       `;
@@ -159,7 +157,7 @@ exports.getPendenciesByClient = async (req, res) => {
        JOIN clients c ON p.client_id = c.id
        JOIN purchase_clothings pc ON p.id = pc.purchase_id
        JOIN clothings cl ON cl.id = pc.clothing_id
-       LEFT JOIN payment_method pm ON p.payment_method_id = pm.id
+       LEFT JOIN payment_method pm ON p.payment_method_name = pm.name
        WHERE c.id = ${clientId}
        ORDER BY p.created_at DESC
     `;
@@ -173,11 +171,11 @@ exports.getPendenciesByClient = async (req, res) => {
 // Payment
 exports.markAsPaid = async (req, res) => {
   const { purchaseId } = req.params;
-  const { payment_method_id } = req.body;
+  const { payment_method_name } = req.body;
 
   try {
     const result = await sql`
-      UPDATE purchases SET is_paid = TRUE, payment_method_id = ${payment_method_id} WHERE id = ${purchaseId} RETURNING *
+      UPDATE purchases SET is_paid = TRUE, payment_method_name = ${payment_method_name} WHERE id = ${purchaseId} RETURNING *
     `;
 
     if (result.length === 0) {
@@ -195,7 +193,7 @@ exports.markAsUnpaid = async (req, res) => {
   try {
     const { purchaseId } = req.params;
     await sql`
-      UPDATE purchases SET is_paid = false, payment_method_id = NULL WHERE id = ${purchaseId}
+      UPDATE purchases SET is_paid = false, payment_method_name = NULL WHERE id = ${purchaseId}
     `;
     res.json({ message: 'Purchase marked as not paid successfully' });
   } catch (err) {
