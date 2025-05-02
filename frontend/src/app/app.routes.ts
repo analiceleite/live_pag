@@ -9,7 +9,6 @@ import { AuthUserComponent } from './@common/auth/user/auth-user.component';
 import { MenuComponent } from './@domain/admin/menu/menu.component';
 import { ClientRegistrationComponent } from './@domain/admin/register/client-registration/client-registration.component';
 import { ClothingRegistrationComponent } from './@domain/admin/register/clothing-registration/clothing-registration.component';
-import { PurchaseRegistrationComponent } from './@domain/admin/register/purchase-registration/purchase-registration.component';
 import { MiningRegisterComponent } from './@domain/admin/register/mining-registration/mining-registration.component';
 
 import { PendenciesComponent } from './@domain/admin/management/pendencies/pendencies.component';
@@ -39,7 +38,6 @@ export const routes: Routes = [
   // 📋 Registration routes
   { path: 'cadastro-pecas', component: ClothingRegistrationComponent, canActivate: [AdminGuard] }, // Register clothing
   { path: 'cadastro-clientes', component: ClientRegistrationComponent, canActivate: [AdminGuard] }, // Register client
-  { path: 'cadastro-compras', component: PurchaseRegistrationComponent, canActivate: [AdminGuard] }, // Register purchase
   { path: 'cadastro-garimpo', component: MiningRegisterComponent, canActivate: [AdminGuard] }, // Register mining
 
   // 📦 Management routes
@@ -55,7 +53,7 @@ export const routes: Routes = [
   { path: 'pendencias-cliente', component: PendenciesUserComponent }, // Customer sees own pendencies
 
   // 🔍 Fallback - 404 page
-  { path: '**', component: NotFoundComponent } // Not found route
+  { path: '**', component: NotFoundComponent } 
 ];
 
 @NgModule({

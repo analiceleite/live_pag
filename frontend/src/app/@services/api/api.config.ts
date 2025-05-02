@@ -19,7 +19,8 @@ export class ApiConfig {
     };
 
     static readonly AUTH = {
-        LOGIN: `${ApiConfig.BASE_URL}/auth/login`
+        LOGIN: `${ApiConfig.BASE_URL}/auth/login`,
+        LOGIN_ADMIN: `${ApiConfig.BASE_URL}/auth/admin-login`,
     };
 
     static readonly PAYMENT = {
@@ -43,6 +44,7 @@ export class ApiConfig {
 
     static readonly CLOTHING = {
         LIST: `${ApiConfig.BASE_URL}/clothing/get-all`,
+        LIST_AVAILABLE: `${ApiConfig.BASE_URL}/clothing/get-available`,
         CREATE: `${ApiConfig.BASE_URL}/clothing/create`,
         UPDATE: (id: number) => `${ApiConfig.BASE_URL}/clothing/edit/${id}`,
         DELETE: (id: number) => `${ApiConfig.BASE_URL}/clothing/delete/${id}`

@@ -15,7 +15,6 @@ export class PurchaseService {
         private purchaseApi: PurchaseApi,
         private paymentApi: PaymentApi,
         private snackBar: MatSnackBar,
-        private http: HttpClient
     ) { }
 
     loadPendencies(): Observable<Client[]> {
@@ -33,8 +32,8 @@ export class PurchaseService {
         return this.paymentApi.getAll();
     }
 
-    markAsPaid(purchaseId: number, paymentMethodId: number): Observable<void> {
-        return this.purchaseApi.markAsPaid(purchaseId, paymentMethodId).pipe(
+    markAsPaid(purchaseId: number, paymentMethodName: string): Observable<void> {
+        return this.purchaseApi.markAsPaid(purchaseId, paymentMethodName).pipe(
             map(() => {
                 this.showMessage('Pagamento registrado com sucesso!');
             })
@@ -102,11 +101,7 @@ export class PurchaseService {
     }
 
     createPurchase(clientId: number, clothings: any[]): Observable<void> {
-        return this.purchaseApi.createPurchase(clientId, clothings).pipe(
-            map(() => {
-                this.showMessage('Compra criada com sucesso!');
-            })
-        );
+        return this.purchaseApi.createPurchase(clientId, clothings);
     }
 
     registerPurchase(clientId: number, clothingIds: string[]): Observable<void> {
@@ -116,9 +111,8 @@ export class PurchaseService {
     }
 
     updateTrackingCode(purchaseId: number, tracking_code: string | null): Observable<any> {
-        // Convert empty string to null
         const code = tracking_code === '' ? null : tracking_code;
-        
+
         return this.purchaseApi.updateTracking(purchaseId, code).pipe(
             tap(() => {
                 this.showMessage('Entrega registrada com sucesso!');

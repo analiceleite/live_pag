@@ -15,6 +15,10 @@ export class ClothingApi {
     return this.http.get(ApiConfig.CLOTHING.LIST, { headers: this.headers() });
   }
 
+  getAvailable() {
+    return this.http.get(ApiConfig.CLOTHING.LIST_AVAILABLE, { headers: this.headers() });
+  }
+
   add(data: {
     name: string;
     price: number;

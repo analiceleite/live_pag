@@ -24,9 +24,9 @@ export class PurchaseApi {
     return this.http.get<Purchase[]>(ApiConfig.PURCHASE.PENDENCIES_BY_CLIENT(clientId), { headers: this.getHeaders() });
   }
 
-  markAsPaid(purchaseId: number, paymentMethodId: number): Observable<any> {
+  markAsPaid(purchaseId: number, paymentMethodName: string): Observable<any> {
     return this.http.patch(ApiConfig.PURCHASE.MARK_AS_PAID(purchaseId), 
-      { payment_method_id: paymentMethodId },
+      { payment_method_name: paymentMethodName },
       { headers: this.getHeaders() }
     );
   }
