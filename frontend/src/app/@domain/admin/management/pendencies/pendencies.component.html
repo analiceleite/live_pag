@@ -117,6 +117,7 @@
             <app-client-card 
                 *ngFor="let client of getFilteredClients()"
                 [client]="client"
+                [pixKeys]="pixKeys"   
                 [selectedTab]="(stateService.selectedTab$ | async) || 'open'"
                 [selectedClientCpf]="stateService.selectedClientCpf$ | async"
                 (toggleClient)="toggleSelectedClient($event)"

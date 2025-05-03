@@ -18,6 +18,7 @@ import { PendenciesDataService } from './services/pendencies-data.service';
 import { ClientCardComponent } from './components/client-card/client-card.component';
 import { TrackingDialogComponent } from './components/tracking-dialog/tracking-dialog.component';
 import { forkJoin } from 'rxjs';
+import { PixKey, PixKeyService } from '../../../../@services/api/shared/pix-key.service';
 
 @Component({
     selector: 'app-pendencies',
@@ -36,11 +37,14 @@ import { forkJoin } from 'rxjs';
     templateUrl: './pendencies.component.html'
 })
 export class PendenciesComponent implements OnInit {
+    pixKeys: PixKey[] = [];
+
     constructor(
         private router: Router,
         private whatsappService: WhatsappService,
         public stateService: PendenciesStateService,
-        public dataService: PendenciesDataService
+        public dataService: PendenciesDataService,
+        private pixKeyService: PixKeyService
     ) { }
 
     ngOnInit(): void {
@@ -49,12 +53,14 @@ export class PendenciesComponent implements OnInit {
 
     private loadData(): void {
         this.stateService.setLoading(true);
-        
+
         forkJoin([
             this.dataService.loadPendencies(),
-            this.dataService.loadPaymentMethods()
+            this.dataService.loadPaymentMethods(),
+            this.pixKeyService.getAvailablePixKeys()
         ]).subscribe({
-            next: ([clients, paymentMethods]) => {
+            next: ([clients, paymentMethods, pixKeys]) => {
+                this.pixKeys = pixKeys;
                 this.stateService.setLoading(false);
             },
             error: (error) => {
@@ -84,18 +90,40 @@ export class PendenciesComponent implements OnInit {
         data.group.isExpanded = !data.group.isExpanded;
     }
 
-    // WhatsApp
     sendWhatsAppMessage(client: ClientPendencies): void {
         if (!client.phone) {
             alert('Cliente não possui telefone cadastrado!');
             return;
         }
 
-        const message = this.whatsappService.generatePendingItemsMessage(client);
-        const phoneNumber = client.phone.replace(/\D/g, '');
-        const formattedPhone = phoneNumber.startsWith('55') ? phoneNumber : `55${phoneNumber}`;
+        const orderUrl = 'https://dev--tagtrack.netlify.app/';
 
-        window.open(`https://wa.me/${formattedPhone}?text=${message}`);
+        const selectedPixKey = (client as any).selectedPixKey ?? null;
+
+        console.log('Selected Pix Key:', selectedPixKey);
+
+        const rawMessage = this.whatsappService.generatePendingItemsMessage(
+            client,
+            selectedPixKey,
+            orderUrl
+        );
+
+        let rawPhone = client.phone.replace(/\D/g, '');
+
+        while (rawPhone.startsWith('0')) {
+            rawPhone = rawPhone.substring(1);
+        }
+
+        if (rawPhone.length <= 11) {
+            rawPhone = '55' + rawPhone;
+        } else if (rawPhone.startsWith('55') && rawPhone.length >= 12 && rawPhone.length <= 13) {
+        } else if (rawPhone.length > 13) {
+            rawPhone = rawPhone.substring(0, 13);
+        }
+
+        const waUrl = `https://wa.me/${rawPhone}?text=${encodeURIComponent(rawMessage)}`;
+
+        window.open(waUrl, '_blank');
     }
 
     // Group operations
