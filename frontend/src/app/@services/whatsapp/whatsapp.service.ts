@@ -1,30 +1,43 @@
 import { Injectable } from '@angular/core';
 import { ClientPendencies } from '../models/purchase.interface';
+import { PixKey } from '../api/shared/pix-key.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class WhatsappService {
-    generatePendingItemsMessage(client: ClientPendencies): string {
+    /**
+     * @param client 
+     * @param selectedPixKey  
+     * @param orderUrl    
+     */
+    generatePendingItemsMessage(
+        client: ClientPendencies,
+        selectedPixKey: PixKey | null,
+        orderUrl: string
+    ): string {
         const itemsByDate = client.purchase_groups
-            .filter(group => !group.is_paid)
-            .map(group => ({
-                date: this.formatDate(group.date),
-                items: group.purchases.map(p => `- ${p.clothing}: R$ ${Number(p.price).toFixed(2)}`),
-                total: group.total_amount
+            .filter(g => !g.is_paid)
+            .map(g => ({
+                date: this.formatDate(g.date),
+                items: g.purchases.map(p => `- ${p.clothing}: R$ ${Number(p.price).toFixed(2)}`),
+                total: g.total_amount
             }));
 
-        const pendingItemsSections = itemsByDate
-            .map(group => `📅 SACOLINHA DO DIA ${group.date}:\n${group.items.join('\n')}`)
+        const pendingSections = itemsByDate
+            .map(g => `[SACOLINHA DO DIA ${g.date}]:\n${g.items.join('\n')}`)
             .join('\n\n');
-            
-        const datesText = itemsByDate.length > 1 
+
+        const datesText = itemsByDate.length > 1
             ? `DIAS ${itemsByDate.map(g => g.date).join(' e ')}`
             : `DIA ${itemsByDate[0]?.date}`;
+        const totalAmount = itemsByDate.reduce((sum, g) => sum + g.total, 0);
 
-        const totalAmount = itemsByDate.reduce((sum, group) => sum + group.total, 0);
+        const pixCopyPaste = selectedPixKey ? selectedPixKey.key : '';
 
-        return encodeURIComponent(`COMPRA REALIZADA COM SUCESSO (${datesText})
+        const message = `
+        
+COMPRA REALIZADA COM SUCESSO (${datesText})
 
 Muito obrigada por acompanhar nossa live e realizar sua compra!
 
@@ -34,38 +47,55 @@ ATENÇÃO:
 A finalização do seu pedido deve ser feita exclusivamente pelo app.
 É por lá que você realiza o pagamento e solicita o envio da sua sacolinha!
 
-⸻
+----------
 
 Confira o link do seu pedido:
-[inserir link]
+${orderUrl}
 
-⸻
+----------
 
-INFORMAÇÕES IMPORTANTES: 
+Para acompanhar o status deste pedido e ver todos os detalhes (itens, pagamentos futuros e rastreamento), basta:
+1. Abrir o nosso app.
+2. Fazer login com o seu telefone cadastrado: **${client.phone}**
+3. Navegar pelas abas "Em aberto" e "Histórico de Compras".
 
-* Finalize o pagamento pelo app. 
-* ⁠Você pode optar por pagamento no pix ou no cartão de crédito. 
-* ⁠O PAGAMENTO DEVE SER REALIZADO ATÉ MEIO DIA. 
+----------
+
+
+INFORMAÇÕES IMPORTANTES:
+
+* Finalize o pagamento pelo app.
+${selectedPixKey ? `
+[DADOS PARA PAGAMENTO VIA PIX]
+> Tipo: ${selectedPixKey.type === 'ALEATORIA' ? 'Chave Aleatória' : selectedPixKey.type}
+> Chave: ${selectedPixKey.key}
+> Nome: ${selectedPixKey.receptor_name}
+> Cidade: ${selectedPixKey.city}
+> Copia-cola: ${pixCopyPaste}
+` : ''}
+* O PAGAMENTO DEVE SER REALIZADO ATÉ MEIO DIA.
 * Após o pagamento, a solicitação de envio deve ser feita dentro do app.
 * Enviamos para todo o Brasil com muito carinho!
 
 Lembrete: os envios são feitos toda segunda-feira.
 
-⸻
+----------
 
 ITENS PENDENTES:
-${pendingItemsSections}
+${pendingSections}
 
-💰 VALOR TOTAL: R$ ${totalAmount.toFixed(2)}
+[VALOR TOTAL]: R$ ${totalAmount.toFixed(2)}
 
-⸻
+----------
 
 Qualquer dúvida, estamos à disposição!
-Obrigada por comprar com a gente!`);
+Obrigada por comprar com a gente!`;
+
+        return message.trim();  
     }
 
     private formatDate(dateString: string): string {
-        const date = new Date(dateString + 'T12:00:00'); 
+        const date = new Date(dateString + 'T12:00:00');
         return date.toLocaleDateString('pt-BR');
     }
 }

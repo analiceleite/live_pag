@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { PixKey } from '../../../../../../@services/api/shared/pix-key.service';
 import { ClientPendencies, PurchaseGroup, PurchaseTab } from '../../../../../../@services/models/purchase.interface';
 
 @Component({
@@ -18,6 +19,7 @@ export class PurchaseGroupComponent {
   @Input() group!: PurchaseGroup;
   @Input() client!: ClientPendencies;
   @Input() selectedTab: PurchaseTab = 'open';
+  @Input() pixKeys: PixKey[] = []; 
 
   @Output() toggleGroup = new EventEmitter<PurchaseGroup>();
   @Output() markAsPaid = new EventEmitter<{ date: string, cpf: string, paymentType: 'Nubank' | 'PicPay' }>();
@@ -25,6 +27,13 @@ export class PurchaseGroupComponent {
   @Output() markAsDeleted = new EventEmitter<{ date: string, cpf: string }>();
   @Output() returnToOpen = new EventEmitter<{ date: string, cpf: string }>();
   @Output() openTrackingDialog = new EventEmitter<{ date: string, cpf: string }>();
+  @Output() pixKeySelected = new EventEmitter<{ group: PurchaseGroup; key: PixKey }>();
+
+  onSelectPixKey(group: PurchaseGroup, pixKey: PixKey): void {
+    group.selectedPixKey = pixKey;
+    group.showPixOptions = false;
+    this.pixKeySelected.emit({ group, key: pixKey });
+  }
 
   toggleGroupExpand(event: Event, group: PurchaseGroup): void {
     event.stopPropagation();

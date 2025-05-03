@@ -124,7 +124,6 @@ export class PendenciesUserComponent implements OnInit {
       }
       grouped[date].push(item);
     }
-    // Sort dates in descending order
     return Object.entries(grouped)
       .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime())
       .map(([date, items]) => ({
@@ -198,7 +197,7 @@ export class PendenciesUserComponent implements OnInit {
     }
 
     const message = `Olá! Sou ${this.logged_client.client} e estou enviando o comprovante de pagamento das minhas compras em aberto.`;
-    const link = `https://wa.me/+5547984957878?text=${encodeURIComponent(message)}`;
+    const link = `https://wa.me/+554733078069?text=${encodeURIComponent(message)}`;
     window.open(link, '_blank');
   }  
 
@@ -213,14 +212,12 @@ export class PendenciesUserComponent implements OnInit {
   }
 
   getGroupTrackingCode(items: any[]): string | null {
-    // All items in a group should have the same tracking code
     return items[0]?.tracking_code || null;
   }
 
   askForDeliverByGroup(items: any[]) {
     if (!items?.length) return;
     
-    // Get all purchase IDs from the same date
     const purchaseIds = items.map(item => item.purchase_id);
     
     this.purchaseService.requestDelivery(purchaseIds[0]).subscribe({
@@ -260,7 +257,6 @@ export class PendenciesUserComponent implements OnInit {
   copyQrCodeValue() {
     if (this.qr_code_value) {
       navigator.clipboard.writeText(this.qr_code_value).then(() => {
-        // You might want to add a toast notification here
         console.log('Código copiado com sucesso!');
       });
     }

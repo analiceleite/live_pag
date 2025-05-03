@@ -1,3 +1,4 @@
+import { PixKey } from "/home/analice/Documents/Projects/live_pag/frontend/src/app/@services/api/shared/pix-key.service";
 export interface Purchase {
     id: number; 
     purchase_id: number;
@@ -26,6 +27,7 @@ export interface ClientPendencies {
     payment_method?: string;
     phone?: string;
     purchase_groups: PurchaseGroup[];
+    selectedPixKey?: PixKey;
 }
 
 export interface Client {
@@ -50,6 +52,8 @@ export interface PaymentMethod {
 }
 
 export interface PurchaseGroup {
+    showPixOptions?: boolean;
+    selectedPixKey?: PixKey;
     date: string;
     tracking_code?: string;
     purchases: PurchaseWithUI[];

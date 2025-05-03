@@ -2,8 +2,9 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ClientPendencies, PurchaseTab } from '../../../../../../@services/models/purchase.interface';
+import { ClientPendencies, PurchaseGroup, PurchaseTab } from '../../../../../../@services/models/purchase.interface';
 import { PurchaseGroupComponent } from '../purchase-group/purchase-group.component';
+import { PixKey } from '../../../../../../@services/api/shared/pix-key.service';
 
 @Component({
   selector: 'app-client-card',
@@ -20,6 +21,7 @@ export class ClientCardComponent {
   @Input() client!: ClientPendencies;
   @Input() selectedTab: PurchaseTab = 'open';
   @Input() selectedClientCpf: string | null = null;
+  @Input() pixKeys: PixKey[] = [];
 
   @Output() toggleClient = new EventEmitter<string>();
   @Output() sendWhatsApp = new EventEmitter<ClientPendencies>();
@@ -29,15 +31,22 @@ export class ClientCardComponent {
   @Output() markGroupAsDeleted = new EventEmitter<{ date: string, cpf: string }>();
   @Output() returnGroupToOpen = new EventEmitter<{ date: string, cpf: string }>();
   @Output() openTrackingDialog = new EventEmitter<{ date: string, cpf: string }>();
+  @Output() pixKeySelected = new EventEmitter<{ group: PurchaseGroup; key: PixKey }>();
 
   onToggleClient(cpf: string): void {
     this.toggleClient.emit(cpf);
   }
 
-  onSendWhatsApp(client: ClientPendencies): void {
-    this.sendWhatsApp.emit(client);
-  }
+  onSendWhatsApp(): void {
+    if (this.client.purchase_groups) {
+      const groupWithPix = this.client.purchase_groups.find(g => g.selectedPixKey);
+      if (groupWithPix?.selectedPixKey) {
+        this.client.selectedPixKey = groupWithPix.selectedPixKey;
+      }
+    }
 
+    this.sendWhatsApp.emit(this.client);
+  }
   onToggleGroup(group: any): void {
     this.toggleGroup.emit({ client: this.client, group });
   }
@@ -60,6 +69,11 @@ export class ClientCardComponent {
 
   onOpenTrackingDialog(event: { date: string, cpf: string }): void {
     this.openTrackingDialog.emit(event);
+  }
+
+  onGroupPixKeySelected(event: { group: PurchaseGroup; key: PixKey }): void {
+    this.client.selectedPixKey = event.key;
+    console.log('Selected Pix Key:', event.key);
   }
 
   getTotalAmount(client: ClientPendencies): number {

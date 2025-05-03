@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
-import { Observable, map, of } from 'rxjs';
-import { 
-  ClientPendencies, 
-  PaymentMethod, 
-  PurchaseGroup, 
-  PurchaseTab, 
-  PurchaseWithUI 
+import { Observable, map, of, tap } from 'rxjs';
+import {
+  ClientPendencies,
+  PaymentMethod,
+  PurchaseGroup,
+  PurchaseTab,
+  PurchaseWithUI
 } from '../../../../../@services/models/purchase.interface';
 import { PurchaseService } from '../../../../../@services/api/purchase/purchase.service';
+import { PixKey, PixKeyService } from '../../../../../@services/api/shared/pix-key.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,9 +16,20 @@ import { PurchaseService } from '../../../../../@services/api/purchase/purchase.
 export class PendenciesDataService {
   private clients: ClientPendencies[] = [];
   private paymentMethods: PaymentMethod[] = [];
+  private pixKeys: PixKey[] = [];
 
-  constructor(private purchaseService: PurchaseService) { }
+  constructor(private purchaseService: PurchaseService, private pixKeyService: PixKeyService) { }
 
+  loadPixKeys(): Observable<PixKey[]> {
+    return this.pixKeyService.getAvailablePixKeys().pipe(
+      tap(keys => this.pixKeys = keys)
+    );
+  }
+
+  getPixKeys(): PixKey[] {
+    return this.pixKeys;
+  }
+  
   loadPendencies(): Observable<ClientPendencies[]> {
     return this.purchaseService.loadPendencies().pipe(
       map(clients => {
