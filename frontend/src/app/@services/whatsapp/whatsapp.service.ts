@@ -25,73 +25,41 @@ export class WhatsappService {
             }));
 
         const pendingSections = itemsByDate
-            .map(g => `[SACOLINHA DO DIA ${g.date}]:\n${g.items.join('\n')}`)
+            .map(g => `SACOLINHA DO DIA ${g.date}:\n${g.items.join('\n')}`)
             .join('\n\n');
 
-        const datesText = itemsByDate.length > 1
-            ? `DIAS ${itemsByDate.map(g => g.date).join(' e ')}`
-            : `DIA ${itemsByDate[0]?.date}`;
         const totalAmount = itemsByDate.reduce((sum, g) => sum + g.total, 0);
 
-        const pixCopyPaste = selectedPixKey ? selectedPixKey.key : '';
+        const message = `OI! SEUS ITENS ESTÃO ESPERANDO POR VOCÊ!
 
-        const message = `
-        
-COMPRA REALIZADA COM SUCESSO (${datesText})
+SUAS ROUPAS DO DIA ${itemsByDate[0]?.date}:
+${itemsByDate[0]?.items.join('\n')}
 
-Muito obrigada por acompanhar nossa live e realizar sua compra!
+PREÇO TOTAL: R$ ${totalAmount.toFixed(2)}
 
-Seu pedido foi registrado com sucesso e está prontinho para ser finalizado.
+PARA RECEBER SUAS ROUPAS:
+1. Relize o pagamento via PIX ou pelo app
+2. Depois é só esperar chegar na sua casa!
 
-ATENÇÃO:
-A finalização do seu pedido deve ser feita exclusivamente pelo app.
-É por lá que você realiza o pagamento e solicita o envio da sua sacolinha!
+>>> PARA PAGAR VIA PIX:
+Pix: ${selectedPixKey ? selectedPixKey.key : ''}
+Nome: ${selectedPixKey ? selectedPixKey.receptor_name : ''}
 
-----------
+>>> PARA SOLICITAR A ENTREGA DO SEU PEDIDO:
+1. Acesse o link: ${orderUrl}
+2. Relize o login no app com o seu telefone: ${client.phone}
+3. Clique em "Solicitar entrega" da sua sacolinha
+4. Vamos receber a solicitação e agendar a entrega para segunda-feira
 
-Confira o link do seu pedido:
-${orderUrl}
+>>> EM CASO DE ENTREGA PELO CORREIO:
+1. Assim que o pedido for enviado, o código de rastreio ficará disponível no app
+2. Você pode acompanhar o rastreio pelo site do correio
 
-----------
+>>> LEMBRETE IMPORTANTE:
+* O pagamento deve ser realizado até meio dia
+* As sacolinhas são enviadas toda segunda-feira`;
 
-Para acompanhar o status deste pedido e ver todos os detalhes (itens, pagamentos futuros e rastreamento), basta:
-1. Abrir o nosso app.
-2. Fazer login com o seu telefone cadastrado: **${client.phone}**
-3. Navegar pelas abas "Em aberto" e "Histórico de Compras".
-
-----------
-
-
-INFORMAÇÕES IMPORTANTES:
-
-* Finalize o pagamento pelo app.
-${selectedPixKey ? `
-[DADOS PARA PAGAMENTO VIA PIX]
-> Tipo: ${selectedPixKey.type === 'ALEATORIA' ? 'Chave Aleatória' : selectedPixKey.type}
-> Chave: ${selectedPixKey.key}
-> Nome: ${selectedPixKey.receptor_name}
-> Cidade: ${selectedPixKey.city}
-> Copia-cola: ${pixCopyPaste}
-` : ''}
-* O PAGAMENTO DEVE SER REALIZADO ATÉ MEIO DIA.
-* Após o pagamento, a solicitação de envio deve ser feita dentro do app.
-* Enviamos para todo o Brasil com muito carinho!
-
-Lembrete: os envios são feitos toda segunda-feira.
-
-----------
-
-ITENS PENDENTES:
-${pendingSections}
-
-[VALOR TOTAL]: R$ ${totalAmount.toFixed(2)}
-
-----------
-
-Qualquer dúvida, estamos à disposição!
-Obrigada por comprar com a gente!`;
-
-        return message.trim();  
+        return message.trim();
     }
 
     private formatDate(dateString: string): string {
