@@ -4,16 +4,15 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 export interface PixKey {
-  _id: string;
+  id: number;
   key: string;
-  type: 'CPF' | 'CNPJ' | 'EMAIL' | 'TELEFONE' | 'ALEATORIA';
-  receptor_name: string;
-  city: string;
-  description: string;
-  active: boolean;
+  type?: '';
+  receptor_name?: string;
+  description?: string;
+  active?: boolean;
   main: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 @Injectable({
@@ -30,6 +29,10 @@ export class PixKeyService {
 
   getAllPixKeys(): Observable<PixKey[]> {
     return this.http.get<PixKey[]>(`${this.apiUrl}/keys`);
+  }
+
+  getMainPixKey(): Observable<PixKey[]> {
+    return this.http.get<PixKey[]>(`${this.apiUrl}/keys/main`);
   }
 
   getPixKeyById(id: string): Observable<PixKey> {

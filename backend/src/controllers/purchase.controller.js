@@ -168,6 +168,47 @@ exports.getPendenciesByClient = async (req, res) => {
   }
 };
 
+exports.getAllPurchasePixKeys = async (req, res) => {
+  console.log(`Fetching Pix keys for all purchases`);
+
+  try {
+    const result = await sql`
+      SELECT 
+        pc.purchase_id, 
+        pc.pix_key_id, 
+        pk.key AS pix_key_value
+      FROM purchase_clothings pc
+      LEFT JOIN pix_keys pk ON pc.pix_key_id = pk.id;
+    `;
+
+    res.json(result); 
+  } catch (err) {
+    console.error('Erro ao buscar chaves Pix:', err);
+    res.status(500).json({
+      error: 'Erro ao buscar chaves Pix das compras',
+      details: err.message
+    });
+  }
+};
+
+exports.setPurchasePixKey = async (req, res) => {
+  const { purchaseId, pixKeyId } = req.body;
+
+  try {
+    const result = await sql`
+      UPDATE purchase_clothings
+      SET pix_key_id = ${pixKeyId}
+      WHERE purchase_id = ${purchaseId}
+        AND pix_key_id IS NULL
+      RETURNING *
+    `;
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Error setting the purchase pix key', details: err.message });
+  }
+};
+
 // Payment
 exports.markAsPaid = async (req, res) => {
   const { purchaseId } = req.params;

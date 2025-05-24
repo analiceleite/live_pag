@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ClientPendencies, PurchaseGroup, PurchaseTab } from '../../../../../../@services/models/purchase.interface';
 import { PurchaseGroupComponent } from '../purchase-group/purchase-group.component';
 import { PixKey } from '../../../../../../@services/api/shared/pix-key.service';
+import { PurchaseService } from '../../../../../../@services/api/purchase/purchase.service';
 
 @Component({
   selector: 'app-client-card',
@@ -22,6 +23,7 @@ export class ClientCardComponent {
   @Input() selectedTab: PurchaseTab = 'open';
   @Input() selectedClientCpf: string | null = null;
   @Input() pixKeys: PixKey[] = [];
+  @Input() allPixKeys: { purchase_id: number, pix_key_id: number | null, pix_key_value: string | null }[] = [];
 
   @Output() toggleClient = new EventEmitter<string>();
   @Output() sendWhatsApp = new EventEmitter<ClientPendencies>();
@@ -33,8 +35,19 @@ export class ClientCardComponent {
   @Output() openTrackingDialog = new EventEmitter<{ date: string, cpf: string }>();
   @Output() pixKeySelected = new EventEmitter<{ group: PurchaseGroup; key: PixKey }>();
 
+  constructor(private purchaseService: PurchaseService) { }
+
+  get mainPixKey(): PixKey | undefined {
+    return this.pixKeys.find(k => k.main);
+  }
+
   onToggleClient(cpf: string): void {
     this.toggleClient.emit(cpf);
+  }
+
+  updateClientPixKey(selectedPixKey: PixKey): void {
+    this.client.selectedPixKey = selectedPixKey;  
+    console.log('Chave Pix do cliente atualizada:', this.client.selectedPixKey);
   }
 
   onSendWhatsApp(): void {
@@ -72,9 +85,26 @@ export class ClientCardComponent {
   }
 
   onGroupPixKeySelected(event: { group: PurchaseGroup; key: PixKey }): void {
-    this.client.selectedPixKey = event.key;
-    console.log('Selected Pix Key:', event.key);
+    const group = event.group;
+    const key = event.key;
+
+    group.selectedPixKey = key;
+    this.client.selectedPixKey = key;
+
+    const purchaseId = group.purchases[0]?.purchase_id;
+    console.log('purchaseId:', purchaseId);
+    
+    if (!key.main && purchaseId != null) {
+      this.purchaseService.setPixKey(purchaseId, key.id).subscribe({
+        next: () => console.log('Chave PIX salva com sucesso'),
+        error: (err: any) => console.error('Erro ao salvar PIX:', err)
+      });
+      console.log(purchaseId, 'Chave PIX:', key.id);
+    }
+
+    console.log('Selected Pix Key:', key);
   }
+
 
   getTotalAmount(client: ClientPendencies): number {
     return client.total_amount;

@@ -99,3 +99,4 @@ exports.deleteClothing = async (req, res) => {
         res.status(500).json({ error: "Error deleting clothing item", details: err.message });
     }
 };
+

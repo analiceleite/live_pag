@@ -15,7 +15,10 @@ export class ApiConfig {
         MARK_AS_SENT: (id: number) => `${ApiConfig.BASE_URL}/purchases/delivery/send/${id}`,
         MARK_AS_NOT_SENT: (id: number) => `${ApiConfig.BASE_URL}/purchases/delivery/cancel-send/${id}`,
         DELIVERIES_REQUESTED: `${ApiConfig.BASE_URL}/purchases/deliveries-requested`,
-        UPDATE_TRACKING: (id: number) => `${ApiConfig.BASE_URL}/purchases/${id}/tracking`
+        UPDATE_TRACKING: (id: number) => `${ApiConfig.BASE_URL}/purchases/${id}/tracking`,
+        GET_PIX_KEY: () => `${ApiConfig.BASE_URL}/purchases/get-pix-key`,
+        UPDATE_PIX_KEY: () => `${ApiConfig.BASE_URL}/purchases/set-pix-key`,
+
     };
 
     static readonly AUTH = {

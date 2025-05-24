@@ -1,0 +1,49 @@
+services:
+  postgres:
+    build: ./database     
+    container_name: postgres_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    mem_limit: 512m
+    cpus: 0.25
+
+  backend:
+    build: ./backend
+    container_name: backend_service
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: brecho
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+    mem_limit: 512m
+    cpus: 0.25
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_app
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    mem_limit: 512m
+    cpus: 0.25
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

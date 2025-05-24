@@ -6,7 +6,7 @@ import { ApiConfig } from '../api.config';
 
 @Injectable({ providedIn: 'root' })
 export class PurchaseApi {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
@@ -25,7 +25,7 @@ export class PurchaseApi {
   }
 
   markAsPaid(purchaseId: number, paymentMethodName: string): Observable<any> {
-    return this.http.patch(ApiConfig.PURCHASE.MARK_AS_PAID(purchaseId), 
+    return this.http.patch(ApiConfig.PURCHASE.MARK_AS_PAID(purchaseId),
       { payment_method_name: paymentMethodName },
       { headers: this.getHeaders() }
     );
@@ -52,7 +52,7 @@ export class PurchaseApi {
   }
 
   createPurchase(clientId: number, clothings: any[]): Observable<any> {
-    return this.http.post(ApiConfig.PURCHASE.CREATE, 
+    return this.http.post(ApiConfig.PURCHASE.CREATE,
       { client_id: clientId, clothings },
       { headers: this.getHeaders() }
     );
@@ -67,9 +67,23 @@ export class PurchaseApi {
   }
 
   updateTracking(purchaseId: number, tracking: string | null): Observable<any> {
-    return this.http.patch(ApiConfig.PURCHASE.UPDATE_TRACKING(purchaseId), 
-      { tracking_code: tracking }, // now sending null directly
+    return this.http.patch(ApiConfig.PURCHASE.UPDATE_TRACKING(purchaseId),
+      { tracking_code: tracking },
       { headers: this.getHeaders() }
     );
   }
+
+  getPurchasesPixKeys(): Observable<any> {
+    return this.http.get(ApiConfig.PURCHASE.GET_PIX_KEY(),
+      { headers: this.getHeaders() }
+    );
+  }
+
+  setPixKey(purchaseId: number, pixKeyId: number) {
+    return this.http.patch(ApiConfig.PURCHASE.UPDATE_PIX_KEY(),
+      { pixKeyId: pixKeyId, purchaseId: purchaseId },
+      { headers: this.getHeaders() }
+    );
+  }
+
 }

@@ -39,4 +39,5 @@ export class ClothingApi {
   delete(id: number) {
     return this.http.delete(ApiConfig.CLOTHING.DELETE(id), { headers: this.headers() });
   }
+  
 }

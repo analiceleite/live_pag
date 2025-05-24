@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
@@ -19,6 +19,7 @@ import { ClientCardComponent } from './components/client-card/client-card.compon
 import { TrackingDialogComponent } from './components/tracking-dialog/tracking-dialog.component';
 import { forkJoin } from 'rxjs';
 import { PixKey, PixKeyService } from '../../../../@services/api/shared/pix-key.service';
+import { PurchaseService } from '../../../../@services/api/purchase/purchase.service';
 
 @Component({
     selector: 'app-pendencies',
@@ -37,14 +38,16 @@ import { PixKey, PixKeyService } from '../../../../@services/api/shared/pix-key.
     templateUrl: './pendencies.component.html'
 })
 export class PendenciesComponent implements OnInit {
-    pixKeys: PixKey[] = [];
+    @Input() allPixKeys: { purchase_id: number, pix_key_id: number | null, pix_key_value: string | null }[] = [];
+    availablePixKeys: PixKey[] = [];
 
     constructor(
         private router: Router,
         private whatsappService: WhatsappService,
         public stateService: PendenciesStateService,
         public dataService: PendenciesDataService,
-        private pixKeyService: PixKeyService
+        private pixKeyService: PixKeyService,
+        private purchaseService: PurchaseService
     ) { }
 
     ngOnInit(): void {
@@ -60,7 +63,7 @@ export class PendenciesComponent implements OnInit {
             this.pixKeyService.getAvailablePixKeys()
         ]).subscribe({
             next: ([clients, paymentMethods, pixKeys]) => {
-                this.pixKeys = pixKeys;
+                this.availablePixKeys = pixKeys;
                 this.stateService.setLoading(false);
             },
             error: (error) => {
@@ -90,7 +93,7 @@ export class PendenciesComponent implements OnInit {
         data.group.isExpanded = !data.group.isExpanded;
     }
 
-    sendWhatsAppMessage(client: ClientPendencies): void {
+    sendWhatsAppMessage(client: ClientPendencies, pixKeys: PixKey[]): void {
         if (!client.phone) {
             alert('Cliente não possui telefone cadastrado!');
             return;
@@ -98,14 +101,13 @@ export class PendenciesComponent implements OnInit {
 
         const orderUrl = 'https://dev--tagtrack.netlify.app/';
 
-        const selectedPixKey = (client as any).selectedPixKey ?? null;
-
-        console.log('Selected Pix Key:', selectedPixKey);
+        const mainPixKey = pixKeys.find(key => key.main) ?? null;
 
         const rawMessage = this.whatsappService.generatePendingItemsMessage(
             client,
-            selectedPixKey,
-            orderUrl
+            mainPixKey,
+            orderUrl,
+            pixKeys 
         );
 
         let rawPhone = client.phone.replace(/\D/g, '');
@@ -126,7 +128,6 @@ export class PendenciesComponent implements OnInit {
         window.open(waUrl, '_blank');
     }
 
-    // Group operations
     markGroupAsPaid(event: { date: string, cpf: string, paymentType: 'Nubank' | 'PicPay' }): void {
         this.dataService.markGroupAsPaid(event.date, event.cpf, event.paymentType).subscribe({
             next: () => this.loadData(),
@@ -161,7 +162,6 @@ export class PendenciesComponent implements OnInit {
         });
     }
 
-    // Tracking dialog
     openTrackingDialog(event: { date: string, cpf: string }): void {
         this.stateService.openTrackingDialog(event.date, event.cpf);
     }
@@ -177,10 +177,8 @@ export class PendenciesComponent implements OnInit {
 
         if (!date || !cpf || date === '' || cpf === '') return;
 
-        // First mark as sent
         this.dataService.markGroupAsSent(date, cpf).subscribe({
             next: () => {
-                // Then update tracking code if provided
                 if (trackingCode.trim()) {
                     this.dataService.updateGroupTrackingCode(date, cpf, trackingCode).subscribe({
                         next: () => {
@@ -200,12 +198,10 @@ export class PendenciesComponent implements OnInit {
         });
     }
 
-    // Navigation
     gotToNewPurchase(): void {
         this.router.navigate(['/cadastro-compras']);
     }
 
-    // Getters for template
     getFilteredClients(): ClientPendencies[] {
         return this.dataService.getFilteredClients(
             this.stateService.getSelectedTab(),

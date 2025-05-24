@@ -1,6 +1,6 @@
-import { PixKey } from "/home/analice/Documents/Projects/live_pag/frontend/src/app/@services/api/shared/pix-key.service";
+import { PixKey } from "../api/shared/pix-key.service";
 export interface Purchase {
-    id: number; 
+    id: number;
     purchase_id: number;
     created_at: string;
     is_paid: boolean;
@@ -14,8 +14,11 @@ export interface Purchase {
 }
 
 export interface PurchaseWithUI extends Purchase {
+    id: number;
+    selectedPixKey?: PixKey;
     showPaymentOptions?: boolean;
     showDeleteOption?: boolean;
+    showPixOptions?: boolean;
 }
 
 export interface ClientPendencies {
@@ -52,6 +55,7 @@ export interface PaymentMethod {
 }
 
 export interface PurchaseGroup {
+    id: number; 
     showPixOptions?: boolean;
     selectedPixKey?: PixKey;
     date: string;
@@ -62,9 +66,9 @@ export interface PurchaseGroup {
     is_delivery_sent: boolean;
     is_deleted: boolean;
     is_delivery_asked: boolean;
-    delivery_requested?: boolean;  
+    delivery_requested?: boolean;
     payment_method?: string;
-    showPaymentOptions?: boolean; 
+    showPaymentOptions?: boolean;
     showDeleteOption?: boolean;
     isExpanded?: boolean;
 }

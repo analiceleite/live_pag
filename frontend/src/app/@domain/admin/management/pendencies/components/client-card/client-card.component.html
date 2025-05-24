@@ -62,15 +62,15 @@
         </div>
     </div>
 
-    <!-- Purchases List -->
     <div *ngIf="selectedClientCpf === client.cpf" class="p-4 bg-gray-50 rounded-b-2xl">
         <div class="space-y-4">
-            <!-- Purchase Group -->
             <app-purchase-group 
                 *ngFor="let group of client.purchase_groups"
                 [group]="group"
                 [client]="client"
                 [pixKeys]="pixKeys" 
+                [allPixKeys]="allPixKeys"
+                (pixKeyUpdated)="updateClientPixKey($event)"
                 (pixKeySelected)="onGroupPixKeySelected($event)"
                 [selectedTab]="selectedTab"
                 (toggleGroup)="onToggleGroup($event)"

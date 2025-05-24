@@ -1,13 +1,11 @@
-FROM node:18-alpine
+FROM node:18
 
-WORKDIR /app
+WORKDIR /backend
 
 COPY package*.json ./
-COPY . .
-
 RUN npm install
 
-ENV PORT=10000
-EXPOSE 10000
+COPY . .
 
-CMD ["npm", "start"]
+EXPOSE 3000
+CMD ["node", "server.js"]

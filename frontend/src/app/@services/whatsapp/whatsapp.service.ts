@@ -14,7 +14,8 @@ export class WhatsappService {
     generatePendingItemsMessage(
         client: ClientPendencies,
         selectedPixKey: PixKey | null,
-        orderUrl: string
+        orderUrl: string,
+        pixKeys: PixKey[]
     ): string {
         const itemsByDate = client.purchase_groups
             .filter(g => !g.is_paid)
@@ -30,6 +31,8 @@ export class WhatsappService {
 
         const totalAmount = itemsByDate.reduce((sum, g) => sum + g.total, 0);
 
+        const pixKeyToUse = selectedPixKey ?? pixKeys.find(k => k.main);
+
         const message = `OI! SEUS ITENS ESTÃO ESPERANDO POR VOCÊ!
 
 SUAS ROUPAS DO DIA ${itemsByDate[0]?.date}:
@@ -42,8 +45,8 @@ PARA RECEBER SUAS ROUPAS:
 2. Depois é só esperar chegar na sua casa!
 
 >>> PARA PAGAR VIA PIX:
-Pix: ${selectedPixKey ? selectedPixKey.key : ''}
-Nome: ${selectedPixKey ? selectedPixKey.receptor_name : ''}
+Pix: ${pixKeyToUse ? pixKeyToUse.key : ''}
+Nome: ${pixKeyToUse ? pixKeyToUse.receptor_name : ''}
 
 >>> PARA SOLICITAR A ENTREGA DO SEU PEDIDO:
 1. Acesse o link: ${orderUrl}
@@ -61,6 +64,7 @@ Nome: ${selectedPixKey ? selectedPixKey.receptor_name : ''}
 
         return message.trim();
     }
+
 
     private formatDate(dateString: string): string {
         const date = new Date(dateString + 'T12:00:00');

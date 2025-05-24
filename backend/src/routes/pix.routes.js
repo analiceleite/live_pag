@@ -7,6 +7,7 @@ router.post('/generate', pixGenerator.generatePix);
 
 // PIX Keys routes
 router.get('/keys', pixKeysController.getAllPixKeys);
+router.get('/keys/main', pixKeysController.getMainPixKey);
 router.get('/keys/available', pixKeysController.getAvailablePixKeys);
 router.get('/keys/:id', pixKeysController.getPixKeyById);
 router.post('/keys', pixKeysController.createPixKey);

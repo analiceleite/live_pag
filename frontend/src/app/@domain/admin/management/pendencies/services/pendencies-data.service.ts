@@ -74,7 +74,10 @@ export class PendenciesDataService {
               showPaymentOptions: false,
               showDeleteOption: false
             })),
-            purchase_groups,
+            purchase_groups: purchase_groups.map((group, index) => ({
+              ...group,
+              id: index + 1 
+            })),
             delivery_requested: client.purchases.some(p => p.is_delivery_asked)
           };
 

@@ -125,6 +125,21 @@ export class PurchaseService {
         );
     }
 
+    setPixKey(purchaseId: number, pixKey: number): Observable<any> {
+        return this.purchaseApi.setPixKey(purchaseId, pixKey).pipe(
+            tap(() => {
+                this.showMessage('Chave PIX registrada com sucesso!');
+            }
+            ),
+            catchError(error => {
+                const errorMessage = error.error?.message || 'Erro ao registrar chave PIX';
+                this.showMessage(errorMessage);
+                return throwError(() => error);
+            }
+            )
+        );  
+    }
+
     private groupPurchasesByClient(purchases: Purchase[]): Purchase[] {
         return purchases.reduce((acc: Purchase[], purchase: Purchase) => {
             const existingPurchase = acc.find(p => p.purchase_id === purchase.purchase_id);

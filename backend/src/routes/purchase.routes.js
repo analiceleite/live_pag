@@ -14,11 +14,13 @@ router.patch('/mark-as-paid/:purchaseId', auth('admin'), controller.markAsPaid);
 router.patch('/mark-as-unpaid/:purchaseId', auth('admin'), controller.markAsUnpaid);
 router.patch('/mark-as-deleted/:purchaseId', auth('admin'), controller.markAsDeleted);
 router.patch('/mark-as-undeleted/:purchaseId', auth('admin'), controller.markAsUndeleted);
+router.get('/get-pix-key', auth('admin'), controller.getAllPurchasePixKeys);
+router.patch('/set-pix-key', auth('admin'), controller.setPurchasePixKey);
 
 // Delivery
+router.get('/deliveries-requested', auth('admin'), controller.getAllDeliveriesRequested);
 router.patch('/delivery/request/:purchaseId', auth('user'), controller.markAsDeliveryRequested);
 router.patch('/delivery/send/:purchaseId', auth('admin'), controller.markAsSent);
 router.patch('/delivery/cancel-send/:purchaseId', auth('admin'), controller.markAsNotSent);
-router.get('/deliveries-requested', auth('admin'), controller.getAllDeliveriesRequested);
 
 module.exports = router;module.exports = router;

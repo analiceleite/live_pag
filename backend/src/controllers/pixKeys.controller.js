@@ -18,6 +18,22 @@ exports.getAvailablePixKeys = async (req, res) => {
     }
 };
 
+exports.getMainPixKey = async (req, res) => {
+    try {
+        const result = await sql`
+            SELECT * FROM pix_keys 
+            WHERE main = true LIMIT 1
+        `;
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Main Pix key not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving main Pix key', error });
+    }
+};
+
 // Get all PIX keys
 exports.getAllPixKeys = async (req, res) => {
     try {
@@ -159,25 +175,33 @@ exports.updatePixKey = async (req, res) => {
     }
 };
 
+
 // Set PIX key as main
 exports.setMainPixKey = async (req, res) => {
+    const id = req.params.id;
     try {
-        const [pixKey] = await sql`
-            UPDATE pix_keys 
-            SET main = true, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ${req.params.id}
-            RETURNING *
-        `;
+        await sql.begin(async sql => {
+            await sql`
+        UPDATE pix_keys
+        SET main = false, updated_at = CURRENT_TIMESTAMP
+      `;
 
-        if (!pixKey) {
-            return res.status(404).json({ error: 'PIX key not found' });
-        }
-
-        return res.json({
-            message: 'PIX key set as main successfully',
-            pixKey
+            const [pixKey] = await sql`
+        UPDATE pix_keys
+        SET main = true, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+            if (!pixKey) throw new Error('NOT_FOUND');
+            res.json({
+                message: 'PIX key set as main successfully',
+                pixKey
+            });
         });
     } catch (err) {
+        if (err.message === 'NOT_FOUND') {
+            return res.status(404).json({ error: 'PIX key not found' });
+        }
         console.error('Error setting main PIX key:', err);
         return res.status(500).json({
             error: 'Error setting main PIX key',
@@ -185,6 +209,7 @@ exports.setMainPixKey = async (req, res) => {
         });
     }
 };
+
 
 // Delete PIX key
 exports.deletePixKey = async (req, res) => {
@@ -233,3 +258,4 @@ exports.deletePixKey = async (req, res) => {
         });
     }
 };
+
